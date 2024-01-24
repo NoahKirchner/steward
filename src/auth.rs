@@ -24,15 +24,11 @@ pub fn get_auth_variables() -> Result<AuthData, Box<dyn Error>> {
     
 }
 
-/*
-pub fn set_auth_variables(auth_data:AuthData) -> Result<(), Box<dyn Error>> {
-    set_var("STEWARD_ADDRESS", auth_data.address);
-    set_var("STEWARD_KEY", auth_data.key);
-    Ok(())
-}
-*/ 
+// TODO ADD FUNCTIONS FOR WRITING TO AND READING FROM CONFIG FILE
+
 
 /* Pre API Key Authentication */
+// TODO RESTRUCTURE THIS TO SAVE TO CONFIG FILE
 pub async fn set_auth_variables(address:String, username:String, password:String) -> Result<(), Box<dyn Error>> {
     let addr = address.as_str();
     let user = username.as_str();
@@ -54,6 +50,8 @@ pub async fn set_auth_variables(address:String, username:String, password:String
         .await?
         .text()
         .await?;
+    
+    // TODO FIX UNWRAPS
 
     let v: Value = serde_json::from_str(&raw_data)?;
     let csrf = v["data"]["CSRFPreventionToken"].clone();
@@ -63,23 +61,34 @@ pub async fn set_auth_variables(address:String, username:String, password:String
     headers.insert(COOKIE, HeaderValue::from_str(ticket.as_str())?);
     //TODO Remove this unwrap
     headers.insert("Csrfpreventiontoken", HeaderValue::from_str(csrf.as_str().unwrap())?,);
-    dbg!(&headers);
 
-    let tokenid = "test";
+    let tokenid = "steward";
     let url = format!("{}/api2/json/access/users/{}/token/{}", addr, user, tokenid);
-    //let url = format!("{}/api2/json/access/permissions", addr);
-    dbg!(&url);
+    let api_del = client
+        .delete(url.clone())
+        .headers(headers.clone())
+        .send()
+        .await?;
+
     let api_key = client 
-        .post(url)
-        .headers(headers)
+        .post(url.clone())
+        .headers(headers.clone())
         .send()
         .await?
         .text()
         .await?;
 
-    dbg!(api_key);
+    let v: Value = serde_json::from_str(&api_key)?;
+    // Remove unwrap PLEASE TODO PLEASE
+    let uuid = v["data"]["value"].as_str().unwrap();
+    let key = format!("PVEAPIToken={}!{}={}", user, tokenid, uuid);
+    
+    // TODO export these to a configuration file
+    env::set_var("STEWARD_KEY", key);
+    env::set_var("STEWARD_ADDRESS", addr);
 
-
+    dbg!(get_auth_variables());
+    
 
     Ok(())
 

@@ -1,4 +1,4 @@
-* can add in an identifier into the description of all VMs created to keep track between sessions without
+* can add in an identifier (USE POOLS RETARD) into the description of all VMs created to keep track between sessions without
 requiring a locally saved file
 * have the program check first for an API key stored in an environment variable. failing that, 
 when the connect command is run it should negotiate an API key and then store that API key in 
@@ -7,3 +7,5 @@ an environment variable
 * about will show you current connection information 
 * status will show you information about VMs you created on the node you are working on 
 * (long term) monitor will show you a tui that can be cancelled with a keystroke to watch stuff passively
+* ability to run without starting REPL
+
