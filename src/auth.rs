@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::env::{self, set_var};
 
+#[derive(Debug)]
 pub struct AuthData {
     pub address: String,
     pub key: String,
@@ -87,9 +88,12 @@ pub async fn set_auth_variables(address:String, username:String, password:String
     env::set_var("STEWARD_KEY", key);
     env::set_var("STEWARD_ADDRESS", addr);
 
-    dbg!(get_auth_variables());
-    
-
     Ok(())
 
+}
+
+pub fn build_client()->() {
+    // TODO pattern matching for error handling
+    let auth_data = get_auth_variables().unwrap();
+    dbg!(auth_data);
 }
