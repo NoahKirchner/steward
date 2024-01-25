@@ -53,6 +53,13 @@ pub struct StewardClient {
 
 impl StewardClient {
 
+    /*
+     * This is sort of ugly, but basically when trying to get cluster/node information, proxmox
+     * will return the "data" object that contains an array of objects. All this does is inspect 
+     * each object in the array, extract the name field from the object, and turn its data into a
+     * hashmap, and then throws THAT into another hashmap (I know, it's horrible, forgive me) with
+     * the key equal to the name of the node.
+     */
     pub async fn about(self)->Result<HashMap<String, HashMap<String, Value>>, Box<dyn Error>>{
         let about = self.client
             .get(format!("{}/api2/json/cluster/status", self.url))
@@ -80,5 +87,23 @@ impl StewardClient {
         Ok(node_map)
     }
 
+    pub async fn clone(self, node:String, source_vmid:i32, clone_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
+
+        // TODO Check here to see if a pool exists or if a vmid is conflicting with the destination
+        // otherwise the clone will fail
+        let clone = self.client 
+            .post(format!("{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone", self.url))
+            .headers(self.headers)
+            .json(&clone_args)
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        dbg!(clone);
+
+
+        Ok(())
+    }
 
 }

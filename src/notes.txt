@@ -8,4 +8,4 @@ an environment variable
 * status will show you information about VMs you created on the node you are working on 
 * (long term) monitor will show you a tui that can be cancelled with a keystroke to watch stuff passively
 * ability to run without starting REPL
-
+* ability to look at all data in a pool and recreate it maybe ? (long term)

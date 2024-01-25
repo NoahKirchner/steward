@@ -30,13 +30,18 @@ impl<C: Parser> Highlighter for ReplHelper<C> {
 impl<C: Parser> Hinter for ReplHelper<C> {
     type Hint = String;
 
+    // TODO right now this crashes whenever a quotation or backslash is added because the shlex split 
+    // interprets it as a new string. CRINGE
     fn hint(&self, line: &str, _pos: usize, _ctx: &rustyline::Context<'_>) -> Option<Self::Hint> {
         let command = C::command();
-        let args = shlex::split(line).unwrap();
-        if let [arg] = args.as_slice() {
-            for c in command.get_subcommands() {
-                if let Some(x) = c.get_name().strip_prefix(arg) {
-                    return Some(x.to_string());
+        let args = shlex::split(line);
+        if args.is_some() {
+            if let [arg] = args.unwrap().as_slice() {
+                for c in command.get_subcommands() {
+                    if let Some(x) = c.get_name().strip_prefix(arg) {
+                        return Some(x.to_string());
+                        }
+                
                 }
             }
         }
@@ -146,7 +151,32 @@ pub enum ReplCommand {
     },
     
     #[command(about = "Returns cluster and connection information")]
-    About {
+    About,
+
+    #[command(about = "Clones a VM")]
+    Clone {
+        
+        #[arg(help = "The cluster node to operate on.")]
+        node:String,
+
+        #[arg(help = "The source VMID to clone from")]
+        source_vmid:i32,
+
+        #[arg(help = "The VMID to clone to")]
+        dest_vmid:i32,
+
+        #[arg(help = "A description for the VM", short, long)]
+        description:Option<String>,
+
+        #[arg(help = "Whether or not to full clone the VM. The default will create a linked clone", short, long)]
+        full:Option<bool>,
+
+        #[arg(help = "The name of the VM. Defaults to the VMID", short, long)]
+        name:Option<String>,
+
+        #[arg(help = "The pool that the VM will be cloned into.", short, long)]
+        pool:Option<String>,
+
 
     },
 
