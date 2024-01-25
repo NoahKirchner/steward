@@ -63,6 +63,10 @@ pub async fn set_auth_variables(address:String, username:String, password:String
     //TODO Remove this unwrap
     headers.insert("Csrfpreventiontoken", HeaderValue::from_str(csrf.as_str().unwrap())?,);
 
+
+    let mut json_data = HashMap::new();
+    json_data.insert("privsep", false);
+
     let tokenid = "steward";
     let url = format!("{}/api2/json/access/users/{}/token/{}", addr, user, tokenid);
     let api_del = client
@@ -74,6 +78,7 @@ pub async fn set_auth_variables(address:String, username:String, password:String
     let api_key = client 
         .post(url.clone())
         .headers(headers.clone())
+        .json(&json_data)
         .send()
         .await?
         .text()
@@ -92,8 +97,4 @@ pub async fn set_auth_variables(address:String, username:String, password:String
 
 }
 
-pub fn build_client()->() {
-    // TODO pattern matching for error handling
-    let auth_data = get_auth_variables().unwrap();
-    dbg!(auth_data);
-}
+

@@ -144,6 +144,12 @@ pub enum ReplCommand {
     Disconnect {
         test: String
     },
+    
+    #[command(about = "Returns cluster and connection information")]
+    About {
+
+    },
+
     #[command(alias="exit")]
     Quit,
 }
