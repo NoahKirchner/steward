@@ -87,7 +87,7 @@ impl StewardClient {
         Ok(node_map)
     }
 
-    pub async fn clone(self, node:String, source_vmid:i32, clone_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
+    pub async fn clone_vm(self, node:String, source_vmid:i32, clone_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
 
         // TODO Check here to see if a pool exists or if a vmid is conflicting with the destination
         // otherwise the clone will fail
@@ -102,6 +102,24 @@ impl StewardClient {
 
         dbg!(clone);
 
+
+        Ok(())
+    }
+
+    pub async fn destroy_vm(self, node:String, vmid:i32, destroy_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
+        
+        dbg!(&destroy_args);
+        let destroy = self.client 
+            .delete(format!("{}/api2/json/nodes/{node}/qemu/{vmid}", self.url))
+            .headers(self.headers)
+            // TODO figure out why sending arguments breaks vm destruction with 501 error
+            //.json(&destroy_args)
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        dbg!(destroy);
 
         Ok(())
     }

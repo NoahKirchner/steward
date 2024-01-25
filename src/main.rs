@@ -51,8 +51,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
             if name.is_some() { clone_args.insert("name", Value::from(name)); }
             if pool.is_some() { clone_args.insert("pool", Value::from(pool)); }
 
-            let output = client.clone().unwrap().clone(node, source_vmid, clone_args).await?;
+            // Match to make sure client is real TODO
+            let output = client.clone().unwrap().clone_vm(node, source_vmid, clone_args).await?;
             println!("done?");
+        }
+
+        ReplCommand::Destroy { node, vmid, destroy_disks, purge_jobs } => {
+            let mut destroy_args = HashMap::new();
+            if destroy_disks.is_some() {destroy_args.insert("destroy-unreferenced-disks", Value::from(destroy_disks)); }
+            if purge_jobs.is_some() {destroy_args.insert("purge", Value::from(purge_jobs)); }
+
+            // Match to make sure client is real TODO
+            let output = client.clone().unwrap().destroy_vm(node, vmid, destroy_args).await?;
+        
         }
 
         ReplCommand::Quit => {

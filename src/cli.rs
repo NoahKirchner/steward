@@ -180,6 +180,23 @@ pub enum ReplCommand {
 
     },
 
+    #[command(about = "Destroys a VM")]
+    Destroy { 
+       
+        #[arg(help = "The node to destroy a VM on")]
+        node:String,
+
+        #[arg(help = "The VMID to destroy")]
+        vmid:i32,
+
+        #[arg(help = "Destroys all disks with a matching VMID from enabled storages. Default false. (NOT WORKING)", short, default_value="false")]
+        destroy_disks:Option<bool>,
+
+        #[arg(help = "Remove VMID from other configurations, like backups and replication jobs. Default false. (NOT WORKING)", short, default_value="false")]
+        purge_jobs:Option<bool>,
+
+    },
+
     #[command(alias="exit")]
     Quit,
 }
