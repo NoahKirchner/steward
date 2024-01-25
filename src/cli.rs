@@ -92,8 +92,8 @@ impl<C: Parser> Repl<C> {
         Repl { rl }
     }
 
-    pub fn read_command(&mut self) -> Option<C> {
-        let line = match self.rl.readline(&style("STEWARD > ").green().bold().bright().to_string()) {
+    pub fn read_command(&mut self, prompt:String) -> Option<C> {
+        let line = match self.rl.readline(&style(prompt.as_str()).green().bold().bright().to_string()) {
             Ok(x) => x,
             Err(e) => match e {
                 rustyline::error::ReadlineError::Eof |

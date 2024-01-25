@@ -34,6 +34,7 @@ pub async fn build_client()->Result<StewardClient, Box<dyn Error>>{
                     url,
                     headers,
                     cluster_name,
+                    current_node: None,
                 }
                 )
         }
@@ -48,10 +49,16 @@ pub struct StewardClient {
     url: String,
     headers: HeaderMap,
     pub cluster_name: String,
+    pub current_node: Option<String>,
 
 }
 
 impl StewardClient {
+
+    pub fn set_node(&mut self, node:String)->Result<(), Box<dyn Error>> {
+        self.current_node = Some(node);
+        Ok(())
+    }
 
     /*
      * This is sort of ugly, but basically when trying to get cluster/node information, proxmox

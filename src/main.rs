@@ -15,7 +15,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut client: Option<StewardClient> = Option::None;
     // Attempt to connect here if ya can my G TODO TODO TODO PLEASE TODO
     loop {
-        let Some(command) = rl.read_command() else {
+        let mut prompt:String = "STEWARD > ".to_string();
+        if client.clone().is_some() { 
+            prompt = format!("STEWARD @ {} > ", client.clone().unwrap().cluster_name.replace("\"", ""));
+        }
+        let Some(command) = rl.read_command(prompt) else {
             continue;
         };
         match command.command {
@@ -30,6 +34,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         ReplCommand::Disconnect { test } => {
             println!("{test} ");
         }
+
 
         ReplCommand::About { } => {
             match client.as_ref().is_some() {
