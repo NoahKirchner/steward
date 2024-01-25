@@ -5,11 +5,11 @@ use console::style;
 use rustyline::{EventHandler, RepeatCount, ConditionalEventHandler, EventContext};
 use rustyline::completion::Completer;
 
-use clap::{Parser, Subcommand, arg, ValueEnum, CommandFactory};
-use rustyline::{DefaultEditor, error::ReadlineError, highlight::Highlighter, hint::Hinter,
+use clap::{Parser, Subcommand, arg, CommandFactory};
+use rustyline::{highlight::Highlighter, hint::Hinter,
 validate::Validator, Cmd, Editor, Event, Helper, KeyCode, KeyEvent, Modifiers};
 
-use colored::{Colorize, ColoredString};
+use colored::{Colorize};
 
 
 
@@ -54,7 +54,7 @@ impl<C: Parser> Helper for ReplHelper<C> {}
 
 struct TabEventHandler;
 impl ConditionalEventHandler for TabEventHandler {
-    fn handle(&self, evt: &Event, n: RepeatCount, _: bool, ctx: &EventContext) -> Option<Cmd> {
+    fn handle(&self, _evt: &Event, _n: RepeatCount, _: bool, ctx: &EventContext) -> Option<Cmd> {
 
         if ctx.line()[..ctx.pos()]
             .chars()
@@ -195,6 +195,14 @@ pub enum ReplCommand {
         #[arg(help = "Remove VMID from other configurations, like backups and replication jobs. Default false. (NOT WORKING)", short, default_value="false")]
         purge_jobs:Option<bool>,
 
+    },
+
+    Status {
+        #[arg(help = "The node the VM is on")]
+        node:String,
+
+        #[arg(help = "The VM to check the status on")]
+        vmid:i32,
     },
 
     #[command(alias="exit")]

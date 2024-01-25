@@ -52,7 +52,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             if pool.is_some() { clone_args.insert("pool", Value::from(pool)); }
 
             // Match to make sure client is real TODO
-            let output = client.clone().unwrap().clone_vm(node, source_vmid, clone_args).await?;
+            let _output = client.clone().unwrap().clone_vm(node, source_vmid, clone_args).await?;
             println!("done?");
         }
 
@@ -62,8 +62,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             if purge_jobs.is_some() {destroy_args.insert("purge", Value::from(purge_jobs)); }
 
             // Match to make sure client is real TODO
-            let output = client.clone().unwrap().destroy_vm(node, vmid, destroy_args).await?;
+            let _output = client.clone().unwrap().destroy_vm(node, vmid, destroy_args).await?;
         
+        }
+
+        ReplCommand::Status { node, vmid } => {
+            let _output = client.clone().unwrap().vm_status(node, vmid).await?;
         }
 
         ReplCommand::Quit => {

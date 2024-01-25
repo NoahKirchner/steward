@@ -1,10 +1,10 @@
 use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
 use reqwest::ClientBuilder;
-use serde::Deserialize;
+
 use serde_json::{Value};
 use std::collections::HashMap;
 use std::error::Error;
-use std::env::{self, set_var};
+use std::env::{self};
 
 #[derive(Debug)]
 pub struct AuthData {
@@ -69,7 +69,7 @@ pub async fn set_auth_variables(address:String, username:String, password:String
 
     let tokenid = "steward";
     let url = format!("{}/api2/json/access/users/{}/token/{}", addr, user, tokenid);
-    let api_del = client
+    let _api_del = client
         .delete(url.clone())
         .headers(headers.clone())
         .send()

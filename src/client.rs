@@ -108,7 +108,6 @@ impl StewardClient {
 
     pub async fn destroy_vm(self, node:String, vmid:i32, destroy_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
         
-        dbg!(&destroy_args);
         let destroy = self.client 
             .delete(format!("{}/api2/json/nodes/{node}/qemu/{vmid}", self.url))
             .headers(self.headers)
@@ -120,6 +119,20 @@ impl StewardClient {
             .await?;
 
         dbg!(destroy);
+
+        Ok(())
+    }
+
+    pub async fn vm_status(self, node:String, vmid:i32)->Result<(), Box<dyn Error>> {
+        let status = self.client 
+            .get(format!("{}/api2/json/nodes/{node}/qemu/{vmid}/status/current", self.url))
+            .headers(self.headers)
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        dbg!(status);
 
         Ok(())
     }
