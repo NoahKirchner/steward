@@ -48,18 +48,57 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
         }
 
-        ReplCommand::Clone { node, source_vmid, dest_vmid, description, full, name, pool } => {
+        ReplCommand::Clone { bulk, bulk_vmid, batch, batch_root, batches, node, source_vmid, dest_vmid, description, full, name, pool } => {
             let mut clone_args = HashMap::new();
-            clone_args.insert("newid", Value::from(dest_vmid));
-            if description.is_some() {clone_args.insert("description", Value::from(description)); }
+ 
             if full.is_some() { clone_args.insert("full", Value::from(full)); }
+            if description.is_some() {clone_args.insert("description", Value::from(description)); }
+            if pool.is_some() { clone_args.insert("pool", Value::from(pool)); } 
+
+            if bulk == true && bulk_vmid.is_some() {
+                for vmid in bulk_vmid.unwrap() .. dest_vmid+1 {
+                    // Clones the HashMap so we can add values into it that are only in 
+                    // scope for this loop.
+                    let mut _clone_args = clone_args.clone();
+                    _clone_args.insert("newid", Value::from(vmid));
+                    if name.is_some() { _clone_args.insert("name", Value::from(format!("{}-{}", name.clone().unwrap(), vmid)));} 
+                let _output = client.clone().unwrap().clone_vm(node.clone(), source_vmid.clone(), _clone_args).await?;
+                }
+            } 
+            if batch == true && batch_root.is_some() && batches.is_some() {
+                let padding_size = batches.clone().unwrap().to_string().len();
+                for batch in 0 .. batches.unwrap()+1 {
+                    // Constructs a correctly padded batch VMID as a string and then parses it to
+                    // i32
+                    let vmid = format!("{}{:0padding_size$}{}", 
+                                           batch_root.unwrap(), 
+                                           batch,
+                                           dest_vmid,
+                                           padding_size = padding_size
+                                           ).parse::<i32>().unwrap();
+                    let mut _clone_args = clone_args.clone();
+                    _clone_args.insert("newid", Value::from(vmid));
+                    
+                    if name.is_some() { _clone_args.insert("name", Value::from(format!("{}-{}", name.clone().unwrap(), batch))); }
+                    
+                    
+                    let _output = client.clone().unwrap().clone_vm(node.clone(), source_vmid.clone(), _clone_args).await?;
+
+                }
+            }
+            else 
+            {
+
+              
+    
+
+            clone_args.insert("newid", Value::from(dest_vmid));
             if name.is_some() { clone_args.insert("name", Value::from(name)); }
-            if pool.is_some() { clone_args.insert("pool", Value::from(pool)); }
 
             // Match to make sure client is real TODO
             let _output = client.clone().unwrap().clone_vm(node, source_vmid, clone_args).await?;
-            println!("done?");
-        }
+            }
+            }
 
         ReplCommand::Destroy { node, vmid, destroy_disks, purge_jobs } => {
             let mut destroy_args = HashMap::new();

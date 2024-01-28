@@ -5,7 +5,7 @@ use console::style;
 use rustyline::{EventHandler, RepeatCount, ConditionalEventHandler, EventContext};
 use rustyline::completion::Completer;
 
-use clap::{Parser, Subcommand, arg, CommandFactory};
+use clap::{Parser, Subcommand, arg, CommandFactory, ArgAction::SetFalse};
 use rustyline::{highlight::Highlighter, hint::Hinter,
 validate::Validator, Cmd, Editor, Event, Helper, KeyCode, KeyEvent, Modifiers};
 
@@ -30,8 +30,6 @@ impl<C: Parser> Highlighter for ReplHelper<C> {
 impl<C: Parser> Hinter for ReplHelper<C> {
     type Hint = String;
 
-    // TODO right now this crashes whenever a quotation or backslash is added because the shlex split 
-    // interprets it as a new string. CRINGE
     fn hint(&self, line: &str, _pos: usize, _ctx: &rustyline::Context<'_>) -> Option<Self::Hint> {
         let command = C::command();
         let args = shlex::split(line);
@@ -155,6 +153,21 @@ pub enum ReplCommand {
 
     #[command(about = "Clones a VM")]
     Clone {
+
+        #[arg(help = "Clones a VM in bulk, filling the space from one VMID to another.", requires("bulk_vmid"), required=false, long, conflicts_with("batch") )]
+        bulk:bool,
+
+        #[arg(help = "The first VMID to clone to. Bulk cloning builds a range of VMs between this VMID and the value of dest_vmid.", long, requires("bulk"))]
+        bulk_vmid:Option<i32>,
+
+        #[arg(help = "Clones a VM in batches. Requires you to provide a 'root' VMID, a number of batches, and then uses the destination VMID to determine the 'box number'. These actual VMID is then arranged like this: root:batch:box, so for example the third batch with the root value 9000 and the destination vmid of 4 would look like 9034, the fourth would look like 9044, the fifth 9054, etc.", requires("batch_root"), requires("batches"), long, conflicts_with("bulk"))]
+        batch:bool,
+
+        #[arg(help = "The root value for the batch, effectively the first digits for every clone. This value will be appended onto the batch number directly, not added, so padding is optional.", long, requires("batch"))]
+        batch_root:Option<i32>,
+
+        #[arg(help = "The number of batches to create. This is the center value of the VMID. If you would like padding for any reason, just specify it here (such as 004 instead of 2) and it will be added to the VMID.", long, requires("batch"))]
+        batches:Option<i32>,
         
         #[arg(help = "The cluster node to operate on.")]
         node:String,
@@ -162,7 +175,7 @@ pub enum ReplCommand {
         #[arg(help = "The source VMID to clone from")]
         source_vmid:i32,
 
-        #[arg(help = "The VMID to clone to")]
+        #[arg(help = "The destination VMID. In normal mode, this is just the VMID you clone to. In bulk mode, it is the end VMID (clone into every vmid between start and this one), and in batch mode it is the last N digits of the VMID per batch.")]
         dest_vmid:i32,
 
         #[arg(help = "A description for the VM", short, long)]
@@ -204,6 +217,7 @@ pub enum ReplCommand {
         #[arg(help = "The VM to check the status on")]
         vmid:i32,
     },
+
 
     #[command(alias="exit")]
     Quit,
