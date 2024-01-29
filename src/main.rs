@@ -79,114 +79,100 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // This command only seems to have issues in bulk mode at massive numbers with a few 
         // 500 internal server errors sneaking through. Handling this is going to be part of the
         // job/task system, but just noting it down here for future reference. TODO 
-        ReplCommand::Clone { bulk, bulk_vmid, batch, batch_root, batches, node, source_vmid, dest_vmid, description, full, name, pool } => {
+        ReplCommand::Clone { action, start_vmid, batches, node, source_vmid, dest_vmid, description, full, name, pool } => {
             let mut clone_args = HashMap::new();
  
             if full.is_some() { clone_args.insert("full", Value::from(full)); }
             if description.is_some() {clone_args.insert("description", Value::from(description)); }
             if pool.is_some() { clone_args.insert("pool", Value::from(pool)); } 
+           
+            // Verifies that a client exists
+            match &client { 
+                Some(_client) => {
+                match action {
 
-            // Probably a less cancerous way to do this 
-            if bulk == true && bulk_vmid.is_some() {
-                for vmid in bulk_vmid.unwrap() .. dest_vmid+1 {
-                    // Clones the HashMap so we can add values into it that are only in 
-                    // scope for this loop.
-                    let mut _clone_args = clone_args.clone();
-                    _clone_args.insert("newid", Value::from(vmid));
+                    // Checks if it was a bulk clone action.
+                    Some(CloneAction::Bulk) => {
 
-                    // just a name check.
-                    match &name {
-                        Some(x) => {
-                            _clone_args.insert("name", Value::from(format!("{}-{}", x, vmid)));
+                        for vmid in start_vmid.unwrap() .. dest_vmid+1 {
+
+                            // Creates a copy of the function arguments
+                            let mut _clone_args = clone_args.clone();
+                            _clone_args.insert("newid", Value::from(vmid));
+                            // Just formats a name if it exists (TODO maybe just make this an if
+                            // statement)
+                            match &name {
+                                Some(_name) => {
+                                    _clone_args.insert("name", Value::from(format!("{}-{}", &_name, vmid)));
+                                }
+                                None => {
+                                    ();
+                                }     
+
+                            }
+
+                            let _output = &_client.clone_vm(node.to_owned(), source_vmid.to_owned(), _clone_args).await?;
                         }
-                        None => {
-                            ();
-                        }
+                     
                     }
+                    // Checks if it was a batch clone action
+                    Some(CloneAction::Batch) => {
 
+                        // Returns a tuple of the padding size for the batch number (so you have
+                        // 000-250 instead of 0-250 for VMID purposes)
+                        let (padding_size, batches) = match batches {
+                            Some(_batches) => {
+                                (_batches.clone().to_string().len(), _batches)
+                            }
+                            None => {
+                                panic!("Aw shit");
+                            }
+                        };
 
-                    let _output = match &client {
-                        Some(x) => {
-                            // TODO make this not retarded and use _output somewhere useful
-                            &x.clone_vm(node.to_owned(), source_vmid.to_owned(), _clone_args).await?;
+                        for batch in 0 .. batches+1 {
+                            // Formatting from the earlier comment to create a VMID with correct
+                            // padding
+                            let vmid = format!("{}{:0padding_size$}{}", 
+                                    start_vmid.unwrap(), 
+                                    batch,
+                                    dest_vmid,
+                                    padding_size = padding_size
+                                    ).parse::<i32>().unwrap();
+                            
+
+                            let mut _clone_args = clone_args.clone();
+                            _clone_args.insert("newid", Value::from(vmid));
+
+                            match &name {
+                                Some(_name) => {
+                                    _clone_args.insert("name", Value::from(format!("{}-{}", &_name, batch)));
+                                }
+                                None => {
+                                    ();
+                                }
+                            }
+
+                            let _output = &_client.clone_vm(node.to_owned(), source_vmid.to_owned(), _clone_args).await?;
+
                         }
-                        None => {
-                            println!("{}", client_error);
-                        }
-                    };
-                    dbg!(_output);
-                }
-
-            } 
-
-            else if batch == true && batch_root.is_some() && batches.is_some() {
-
-                // Returns padding value and total number of batches together in a tuple, 
-                // also handles error checking i guess
-                let (padding_size, batches) = match batches {
-                    Some(x) => {
-                        (x.clone().to_string().len(), x)
+    
                     }
+                    // Triggers if this is just a normal single clone action
                     None => {
-                        // Actual error handling;
-                        panic!("Aw shit that aint workin");
+
+                        clone_args.insert("newid", Value::from(dest_vmid));
+                        if name.is_some() { clone_args.insert("name", Value::from(name)); }
+                        let _output = &_client.clone_vm(node, source_vmid, clone_args).await?;
                     }
-                };
-
-                for batch in 0 .. batches+1 {
-                    // Constructs a correctly padded batch VMID as a string and then parses it to
-                    // i32. This is horrific.
-                    let vmid = format!("{}{:0padding_size$}{}", 
-                                           batch_root.unwrap(), 
-                                           batch,
-                                           dest_vmid,
-                                           padding_size = padding_size
-                                           ).parse::<i32>().unwrap();
-
-                    // may God forgive me for a .clone(), but it makes sense in this context
-                    let mut _clone_args = clone_args.clone();
-
-                    _clone_args.insert("newid", Value::from(vmid));
-                    
-                    match &name {
-                       Some(x) => {
-                           _clone_args.insert("name", Value::from(format!("{}-{}", x, batch)));
-                       }
-                       None => {
-                           ();
-                       }
-                    }
-
-                    
-                    let _output = match &client {
-                        Some(x) => {
-                            // TODO make this not retarded and use _output somewhere useful
-                            &x.clone_vm(node.to_owned(), source_vmid.to_owned(), _clone_args).await?;
-                        }
-                        None => {
-                            println!("{}", client_error);
-                        }
-                    };
-                    dbg!(_output);
                 }
-            }
-            else 
-            {
 
-
-            clone_args.insert("newid", Value::from(dest_vmid));
-            if name.is_some() { clone_args.insert("name", Value::from(name)); }
-
-            // Match to make sure client is real TODO
-            let _output = match &client {
-                Some(x) => {
-                    &x.clone_vm(node, source_vmid, clone_args).await?;
                 }
                 None => {
-                    println!("{}", client_error);
+                    println!("{}", client_error)
                 }
-            };
             }
+
+            
             }
 
         ReplCommand::Destroy { bulk, node, dest_vmid, destroy_disks, purge_jobs } => {

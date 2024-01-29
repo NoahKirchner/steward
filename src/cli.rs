@@ -115,6 +115,13 @@ impl<C: Parser> Repl<C> {
     }
 }
 
+
+#[derive(clap::ValueEnum, Clone, PartialEq, Debug)]
+pub enum CloneAction {
+    Bulk,
+    Batch,
+}
+
 #[derive(Parser)]
 #[command(author = "Noah Kirchner", version = "0.1", about = "Proxmox Range Manager", long_about = None)]
 pub struct Cli {
@@ -151,10 +158,20 @@ pub enum ReplCommand {
     #[command(about = "Returns cluster and connection information")]
     About,
 
-    //TODO Instead of having the bulk and batch options act as flags, they can just be the 
-    // "root" vmids to assist with clarity.
     #[command(about = "Clones a VM")]
     Clone {
+        
+        #[arg(help = "Which bulk action to take. Bulk will clone a VM to fill the space between two values (1 -> 100), and batch will clone a VM in a number of batches like this: Start VMID+batch_id+vmid. So for example, 5 batches with vmid 3 starting at 10 would look like 1003, 1013, 1023, 1033, 1043.", long, requires("start_vmid"), requires_if("batch", "batches"))]
+        action:Option<CloneAction>,
+
+        #[arg(help = "The starting VMID for a bulk action. In bulk mode, this is the first VMID to clone into. In batch mode, this is the value that comes before the batch value (think of it like padding).", requires("action"), long)]
+        start_vmid:Option<i32>,
+
+        #[arg(help = "The number of batches for a batch operation.", long)]
+        batches:Option<i32>,
+        
+
+        /*
 
         #[arg(help = "Clones a VM in bulk, filling the space from one VMID to another.", requires("bulk_vmid"), required=false, long, conflicts_with("batch") )]
         bulk:bool,
@@ -170,7 +187,8 @@ pub enum ReplCommand {
 
         #[arg(help = "The number of batches to create. This is the center value of the VMID. If you would like padding for any reason, just specify it here (such as 004 instead of 2) and it will be added to the VMID.", long, requires("batch"))]
         batches:Option<i32>,
-        
+        */ 
+
         #[arg(help = "The cluster node to operate on.")]
         node:String,
 
