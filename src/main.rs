@@ -9,6 +9,10 @@ use tokio;
 use std::error::Error;
 use serde_json::Value;
 
+// REALLY BIG TODO 
+// you have a shitload if i32s in here that should really be u16 i dont know how you fucked that up
+// you retard
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
 
@@ -112,6 +116,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
 
                             let _output = &_client.clone_vm(node.to_owned(), source_vmid.to_owned(), _clone_args).await?;
+                            dbg!(_output);
                         }
                      
                     }
@@ -153,6 +158,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
 
                             let _output = &_client.clone_vm(node.to_owned(), source_vmid.to_owned(), _clone_args).await?;
+                            dbg!(_output);
 
                         }
     
@@ -163,6 +169,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         clone_args.insert("newid", Value::from(dest_vmid));
                         if name.is_some() { clone_args.insert("name", Value::from(name)); }
                         let _output = &_client.clone_vm(node, source_vmid, clone_args).await?;
+                        dbg!(_output);
                     }
                 }
 
@@ -175,6 +182,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             
             }
 
+        //TODO Reformat this like clone was
+        //TODO implement pool support
         ReplCommand::Destroy { bulk, node, dest_vmid, destroy_disks, purge_jobs } => {
             let mut destroy_args = HashMap::new();
             if destroy_disks.is_some() {destroy_args.insert("destroy-unreferenced-disks", Value::from(destroy_disks)); }

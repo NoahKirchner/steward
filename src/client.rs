@@ -1,13 +1,26 @@
 use crate::auth::*;
 use std::{error::Error, collections::HashMap};
-use reqwest::{ClientBuilder, header::{HeaderMap, AUTHORIZATION, HeaderValue}};
+use reqwest::{ClientBuilder, header::{HeaderMap, AUTHORIZATION, HeaderValue}, StatusCode};
 use serde_json::{Value};
+use again::{RetryPolicy, Condition};
+use std::time::Duration;
+
+#[derive(Debug)]
+pub struct TaskResponse {
+    status:u16,
+    upid:String,
+}
 
 pub async fn build_client()->Result<StewardClient, Box<dyn Error>>{
     let auth_data = get_auth_variables()?;
     let mut headers = HeaderMap::new();
     let url = auth_data.address;
     let key = auth_data.key.as_str();
+
+    // Retry policy
+    let policy = RetryPolicy::fixed(Duration::from_millis(100))
+        .with_max_retries(10)
+        .with_jitter(false);
     
     let client = ClientBuilder::new()
         .danger_accept_invalid_certs(true)
@@ -35,6 +48,7 @@ pub async fn build_client()->Result<StewardClient, Box<dyn Error>>{
                     headers,
                     cluster_name,
                     current_node: None,
+                    policy,
                 }
                 )
         }
@@ -43,13 +57,14 @@ pub async fn build_client()->Result<StewardClient, Box<dyn Error>>{
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct StewardClient {
     client: reqwest::Client,
     url: String,
     headers: HeaderMap,
     pub cluster_name: String,
     pub current_node: Option<String>,
+    policy: RetryPolicy,
 
 }
 
@@ -67,6 +82,8 @@ impl StewardClient {
      * hashmap, and then throws THAT into another hashmap (I know, it's horrible, forgive me) with
      * the key equal to the name of the node.
      */
+
+    //TODO unshitfuck this disaster
     pub async fn about(&self)->Result<HashMap<String, HashMap<String, Value>>, Box<dyn Error>>{
         let about = self.client
             .get(format!("{}/api2/json/cluster/status", self.url))
@@ -99,18 +116,21 @@ impl StewardClient {
 
         // TODO Check here to see if a pool exists or if a vmid is conflicting with the destination
         // otherwise the clone will fail
-        let clone = self.client 
+        let mut clone = self.client 
             .post(format!("{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone", self.url))
             .headers(self.headers.clone())
             .json(&clone_args)
-            .send()
-            .await?;
-            //.text()
-            //.await?;
+            .send();
 
-        dbg!(clone);
+        let status = &clone.await?.status().is_server_error();
+        let status_error:Box<dyn Error>;
+        if *status { status_error = Err(Box::from("Server error")).unwrap(); }
 
-
+        // again was written by retards
+        // 2 hours later I concur with the above statement, fucking retarded
+        let retry = again::retry_if(|| &mut clone, |err:Box<dyn Error>| status_error);
+        
+        let mut upid:String;
         Ok(())
     }
 
