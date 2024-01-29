@@ -151,6 +151,8 @@ pub enum ReplCommand {
     #[command(about = "Returns cluster and connection information")]
     About,
 
+    //TODO Instead of having the bulk and batch options act as flags, they can just be the 
+    // "root" vmids to assist with clarity.
     #[command(about = "Clones a VM")]
     Clone {
 
@@ -194,13 +196,16 @@ pub enum ReplCommand {
     },
 
     #[command(about = "Destroys a VM")]
-    Destroy { 
+    Destroy {
+        
+        #[arg(help = "A flag to destroy multiple VMs. Will destroy all VMs from this VMID to the other listed VMID.", long)]
+        bulk:Option<i32>,
        
         #[arg(help = "The node to destroy a VM on")]
         node:String,
 
         #[arg(help = "The VMID to destroy")]
-        vmid:i32,
+        dest_vmid:i32,
 
         #[arg(help = "Destroys all disks with a matching VMID from enabled storages. Default false. (NOT WORKING)", short, default_value="false")]
         destroy_disks:Option<bool>,

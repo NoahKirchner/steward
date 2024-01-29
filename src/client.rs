@@ -27,7 +27,7 @@ pub async fn build_client()->Result<StewardClient, Box<dyn Error>>{
             let config_data = config.text().await?;
             let v: Value = serde_json::from_str(&config_data)?;
             // I know this looks horrible, but it gets rid of the quotes around the cluster name.
-            let cluster_name = v["data"][0]["name"].to_string();
+            let cluster_name = v["data"][0]["name"].to_string().replace("\"", "");
             Ok(
                 StewardClient {
                     client,
@@ -67,10 +67,11 @@ impl StewardClient {
      * hashmap, and then throws THAT into another hashmap (I know, it's horrible, forgive me) with
      * the key equal to the name of the node.
      */
-    pub async fn about(self)->Result<HashMap<String, HashMap<String, Value>>, Box<dyn Error>>{
+    pub async fn about(&self)->Result<HashMap<String, HashMap<String, Value>>, Box<dyn Error>>{
         let about = self.client
             .get(format!("{}/api2/json/cluster/status", self.url))
-            .headers(self.headers)
+            //TODO Try to kill this .clone but it might not be possible
+            .headers(self.headers.clone())
             .send()
             .await?
             .text()
@@ -94,18 +95,18 @@ impl StewardClient {
         Ok(node_map)
     }
 
-    pub async fn clone_vm(self, node:String, source_vmid:i32, clone_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
+    pub async fn clone_vm(&self, node:String, source_vmid:i32, clone_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
 
         // TODO Check here to see if a pool exists or if a vmid is conflicting with the destination
         // otherwise the clone will fail
         let clone = self.client 
             .post(format!("{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone", self.url))
-            .headers(self.headers)
+            .headers(self.headers.clone())
             .json(&clone_args)
             .send()
-            .await?
-            .text()
             .await?;
+            //.text()
+            //.await?;
 
         dbg!(clone);
 
@@ -113,11 +114,11 @@ impl StewardClient {
         Ok(())
     }
 
-    pub async fn destroy_vm(self, node:String, vmid:i32, destroy_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
+    pub async fn destroy_vm(&self, node:String, vmid:i32, destroy_args:HashMap<&str, Value>)->Result<(), Box<dyn Error>> {
         
         let destroy = self.client 
             .delete(format!("{}/api2/json/nodes/{node}/qemu/{vmid}", self.url))
-            .headers(self.headers)
+            .headers(self.headers.clone())
             // TODO figure out why sending arguments breaks vm destruction with 501 error
             //.json(&destroy_args)
             .send()
@@ -130,10 +131,10 @@ impl StewardClient {
         Ok(())
     }
 
-    pub async fn vm_status(self, node:String, vmid:i32)->Result<(), Box<dyn Error>> {
+    pub async fn vm_status(&self, node:String, vmid:i32)->Result<(), Box<dyn Error>> {
         let status = self.client 
             .get(format!("{}/api2/json/nodes/{node}/qemu/{vmid}/status/current", self.url))
-            .headers(self.headers)
+            .headers(self.headers.clone())
             .send()
             .await?
             .text()
