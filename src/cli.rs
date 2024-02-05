@@ -280,4 +280,9 @@ pub enum ReplCommand {
         #[arg(help = "Set the vlan", long)]
         vlan: Option<u32>,
     },
+
+    Import {
+        #[arg(help = "The path to the template.yaml file.")]
+        path: String,
+    },
 }

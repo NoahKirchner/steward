@@ -5,7 +5,9 @@ use auth::*;
 mod client;
 use client::*;
 use serde_json::Value;
+use std::env;
 use std::error::Error;
+use std::fs;
 use std::{collections::HashMap, process::exit};
 use tokio;
 
@@ -288,6 +290,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             ReplCommand::Quit => {
                 println!("pce");
                 exit(0);
+            }
+
+            ReplCommand::Import { path } => {
+                let test = fs::read_to_string(path);
             }
         }
     }
