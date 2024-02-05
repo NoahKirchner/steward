@@ -1,23 +1,23 @@
-use std::process::{exit};
-use std::borrow::Cow;
-use std::{marker::PhantomData};
 use console::style;
-use rustyline::{EventHandler, RepeatCount, ConditionalEventHandler, EventContext};
 use rustyline::completion::Completer;
+use rustyline::{ConditionalEventHandler, EventContext, EventHandler, RepeatCount};
+use std::borrow::Cow;
+use std::marker::PhantomData;
+use std::process::exit;
 
-use clap::{Parser, Subcommand, arg, CommandFactory, ArgAction::SetFalse};
-use rustyline::{highlight::Highlighter, hint::Hinter,
-validate::Validator, Cmd, Editor, Event, Helper, KeyCode, KeyEvent, Modifiers};
+use clap::{arg, ArgAction::SetFalse, CommandFactory, Parser, Subcommand};
+use rustyline::{
+    highlight::Highlighter, hint::Hinter, validate::Validator, Cmd, Editor, Event, Helper, KeyCode,
+    KeyEvent, Modifiers,
+};
 
-use colored::{Colorize};
-
-
+use colored::Colorize;
 
 struct ReplHelper<C: Parser> {
-    c_phantom: PhantomData<C>
+    c_phantom: PhantomData<C>,
 }
 
-impl<C:Parser> Completer for ReplHelper<C> {
+impl<C: Parser> Completer for ReplHelper<C> {
     type Candidate = &'static str;
 }
 
@@ -38,8 +38,7 @@ impl<C: Parser> Hinter for ReplHelper<C> {
                 for c in command.get_subcommands() {
                     if let Some(x) = c.get_name().strip_prefix(arg) {
                         return Some(x.to_string());
-                        }
-                
+                    }
                 }
             }
         }
@@ -53,13 +52,7 @@ impl<C: Parser> Helper for ReplHelper<C> {}
 struct TabEventHandler;
 impl ConditionalEventHandler for TabEventHandler {
     fn handle(&self, _evt: &Event, _n: RepeatCount, _: bool, ctx: &EventContext) -> Option<Cmd> {
-
-        if ctx.line()[..ctx.pos()]
-            .chars()
-                .rev()
-                .next()
-                .is_none()
-        {
+        if ctx.line()[..ctx.pos()].chars().rev().next().is_none() {
             println!();
             let mut cmd = Cli::command();
             let _ = cmd.print_long_help();
@@ -82,20 +75,24 @@ impl<C: Parser> Repl<C> {
         }));
         rl.bind_sequence(
             Event::KeySeq(vec![KeyEvent(KeyCode::Tab, Modifiers::NONE)]),
-            Cmd::CompleteHint);
+            Cmd::CompleteHint,
+        );
         rl.bind_sequence(
             Event::KeySeq(vec![KeyEvent(KeyCode::Tab, Modifiers::NONE)]),
-
-            EventHandler::Conditional(Box::new(TabEventHandler)));
+            EventHandler::Conditional(Box::new(TabEventHandler)),
+        );
         Repl { rl }
     }
 
-    pub fn read_command(&mut self, prompt:String) -> Option<C> {
-        let line = match self.rl.readline(&style(prompt.as_str()).green().bold().bright().to_string()) {
+    pub fn read_command(&mut self, prompt: String) -> Option<C> {
+        let line = match self
+            .rl
+            .readline(&style(prompt.as_str()).green().bold().bright().to_string())
+        {
             Ok(x) => x,
             Err(e) => match e {
-                rustyline::error::ReadlineError::Eof |
-                rustyline::error::ReadlineError::Interrupted => exit(0),
+                rustyline::error::ReadlineError::Eof
+                | rustyline::error::ReadlineError::Interrupted => exit(0),
                 rustyline::error::ReadlineError::WindowResized => return None,
                 _ => panic!("Error in read line: {e:?}"),
             },
@@ -115,7 +112,6 @@ impl<C: Parser> Repl<C> {
     }
 }
 
-
 #[derive(clap::ValueEnum, Clone, PartialEq, Debug)]
 pub enum CloneAction {
     Bulk,
@@ -129,47 +125,54 @@ pub struct Cli {
     pub command: ReplCommand,
 }
 
-
 #[derive(Debug, Subcommand, PartialEq)]
-#[command(name="")]
+#[command(name = "")]
 pub enum ReplCommand {
-    #[command(about = "Connects to a Proxmox instance via credentials. This will negotiate an API key that is saved in an environment variable, so you should only need to run this once per terminal (bash, fsh, etc.) session")]
+    #[command(
+        about = "Connects to a Proxmox instance via credentials. This will negotiate an API key that is saved in an environment variable, so you should only need to run this once per terminal (bash, fsh, etc.) session"
+    )]
     Connect {
-       
-        #[arg(help = "IP Address or URL of the Proxmox server to authenticate to. ex. (https://xxxxxx:xxxx)")]
-        address:String,
+        #[arg(
+            help = "IP Address or URL of the Proxmox server to authenticate to. ex. (https://xxxxxx:xxxx)"
+        )]
+        address: String,
 
         #[arg(help = "The username to authenticate as in the format user@realm. ex. (joe@pam)")]
-        username:String,
-      
+        username: String,
+
         #[arg(help = "The password to authenticate with")]
         password: String,
-
-        /* 
-         * @TODO Optional command (with default) for API key expiration 
+        /*
+         * @TODO Optional command (with default) for API key expiration
          */
+    },
+    #[command(
+        about = "Deletes the API key created by connect and removes it from your environment variables."
+    )]
+    Disconnect { test: String },
 
-    },
-    #[command(about = "Deletes the API key created by connect and removes it from your environment variables.")]
-    Disconnect {
-        test: String
-    },
-    
     #[command(about = "Returns cluster and connection information")]
     About,
 
     #[command(about = "Clones a VM")]
     Clone {
-        
-        #[arg(help = "Which bulk action to take. Bulk will clone a VM to fill the space between two values (1 -> 100), and batch will clone a VM in a number of batches like this: Start VMID+batch_id+vmid. So for example, 5 batches with vmid 3 starting at 10 would look like 1003, 1013, 1023, 1033, 1043.", long, requires("start_vmid"), requires_if("batch", "batches"))]
-        action:Option<CloneAction>,
+        #[arg(
+            help = "Which bulk action to take. Bulk will clone a VM to fill the space between two values (1 -> 100), and batch will clone a VM in a number of batches like this: Start VMID+batch_id+vmid. So for example, 5 batches with vmid 3 starting at 10 would look like 1003, 1013, 1023, 1033, 1043.",
+            long,
+            requires("start_vmid"),
+            requires_if("batch", "batches")
+        )]
+        action: Option<CloneAction>,
 
-        #[arg(help = "The starting VMID for a bulk action. In bulk mode, this is the first VMID to clone into. In batch mode, this is the value that comes before the batch value (think of it like padding).", requires("action"), long)]
-        start_vmid:Option<i32>,
+        #[arg(
+            help = "The starting VMID for a bulk action. In bulk mode, this is the first VMID to clone into. In batch mode, this is the value that comes before the batch value (think of it like padding).",
+            requires("action"),
+            long
+        )]
+        start_vmid: Option<i32>,
 
         #[arg(help = "The number of batches for a batch operation.", long)]
-        batches:Option<i32>,
-        
+        batches: Option<i32>,
 
         /*
 
@@ -187,62 +190,94 @@ pub enum ReplCommand {
 
         #[arg(help = "The number of batches to create. This is the center value of the VMID. If you would like padding for any reason, just specify it here (such as 004 instead of 2) and it will be added to the VMID.", long, requires("batch"))]
         batches:Option<i32>,
-        */ 
-
+        */
         #[arg(help = "The cluster node to operate on.")]
-        node:String,
+        node: String,
 
         #[arg(help = "The source VMID to clone from")]
-        source_vmid:i32,
+        source_vmid: i32,
 
-        #[arg(help = "The destination VMID. In normal mode, this is just the VMID you clone to. In bulk mode, it is the end VMID (clone into every vmid between start and this one), and in batch mode it is the last N digits of the VMID per batch.")]
-        dest_vmid:i32,
+        #[arg(
+            help = "The destination VMID. In normal mode, this is just the VMID you clone to. In bulk mode, it is the end VMID (clone into every vmid between start and this one), and in batch mode it is the last N digits of the VMID per batch."
+        )]
+        dest_vmid: i32,
 
         #[arg(help = "A description for the VM", short, long)]
-        description:Option<String>,
+        description: Option<String>,
 
-        #[arg(help = "Whether or not to full clone the VM. The default will create a linked clone", short, long)]
-        full:Option<bool>,
+        #[arg(
+            help = "Whether or not to full clone the VM. The default will create a linked clone",
+            short,
+            long
+        )]
+        full: Option<bool>,
 
         #[arg(help = "The name of the VM. Defaults to the VMID", short, long)]
-        name:Option<String>,
+        name: Option<String>,
 
         #[arg(help = "The pool that the VM will be cloned into.", short, long)]
-        pool:Option<String>,
-
-
+        pool: Option<String>,
     },
 
     #[command(about = "Destroys a VM")]
     Destroy {
-        
-        #[arg(help = "A flag to destroy multiple VMs. Will destroy all VMs from this VMID to the other listed VMID.", long)]
-        bulk:Option<i32>,
-       
+        #[arg(
+            help = "A flag to destroy multiple VMs. Will destroy all VMs from this VMID to the other listed VMID.",
+            long
+        )]
+        bulk: Option<i32>,
+
         #[arg(help = "The node to destroy a VM on")]
-        node:String,
+        node: String,
 
         #[arg(help = "The VMID to destroy")]
-        dest_vmid:i32,
+        dest_vmid: i32,
 
-        #[arg(help = "Destroys all disks with a matching VMID from enabled storages. Default false. (NOT WORKING)", short, default_value="false")]
-        destroy_disks:Option<bool>,
+        #[arg(
+            help = "Destroys all disks with a matching VMID from enabled storages. Default false. (NOT WORKING)",
+            short,
+            default_value = "false"
+        )]
+        destroy_disks: Option<bool>,
 
-        #[arg(help = "Remove VMID from other configurations, like backups and replication jobs. Default false. (NOT WORKING)", short, default_value="false")]
-        purge_jobs:Option<bool>,
-
+        #[arg(
+            help = "Remove VMID from other configurations, like backups and replication jobs. Default false. (NOT WORKING)",
+            short,
+            default_value = "false"
+        )]
+        purge_jobs: Option<bool>,
     },
 
     Status {
         #[arg(help = "The node the VM is on")]
-        node:String,
+        node: String,
 
         #[arg(help = "The VM to check the status on")]
-        vmid:i32,
+        vmid: i32,
     },
 
-
-    #[command(alias="exit")]
+    #[command(alias = "exit")]
     Quit,
-}
 
+    Config {
+        #[arg(help = "Node the VM is on")]
+        node: String,
+
+        #[arg(help = "VMID to change the configs of")]
+        vmid: u32,
+
+        // Maybe change this to be an integer
+        #[arg(help = "Network device to target", default_value = "net0", long)]
+        net_device: String,
+
+        #[arg(help = "Bridge for the network device", default_value = "vmbr0", long)]
+        bridge: String,
+
+        // Needs to be sanitized cuh
+        #[arg(help = "Set the mac address", long)]
+        mac: Option<String>,
+
+        #[arg(help = "Set the vlan", long)]
+        vlan: Option<u32>,
+    },
+}

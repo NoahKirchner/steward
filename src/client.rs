@@ -8,8 +8,9 @@ use reqwest_retry::{
     default_on_request_failure, policies::ExponentialBackoff, RetryTransientMiddleware, Retryable,
     RetryableStrategy,
 };
+use serde_json::json;
 use serde_json::Value;
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, error::Error, str::FromStr};
 
 struct RetryStrategy;
 impl RetryableStrategy for RetryStrategy {
@@ -192,6 +193,51 @@ impl StewardClient {
             .await?;
 
         dbg!(status);
+
+        Ok(())
+    }
+
+    pub async fn set_vm_net_config(
+        &self,
+        node: String,
+        vmid: u32,
+        net_device: &str,
+        net_config_args: HashMap<&str, Value>,
+    ) -> Result<(), Box<dyn Error>> {
+        let mut net_config: HashMap<&str, String> = HashMap::new();
+
+        let mut net_config_values: String = String::new();
+        // This is a bad solution, but you HAVE to send the data in as a fucking string or you
+        // can't parse out the model enum.
+
+        //TODO unshitfuck pl0x
+        // PS the reason to do this is because the proxmox API basically demands autism
+        net_config_values.push_str("model=virtio,");
+        for (key, value) in net_config_args {
+            net_config_values.push_str(key.to_string().as_str());
+            net_config_values.push_str("=");
+            net_config_values.push_str(value.to_string().replace("\"", "").as_str());
+            net_config_values.push_str(",");
+        }
+
+        dbg!(&net_config_values);
+
+        // TODO unshitfuck this please
+        net_config.insert(net_device, net_config_values);
+
+        dbg!(&net_config);
+        let config = self
+            .client
+            .post(format!(
+                "{}/api2/json/nodes/{node}/qemu/{vmid}/config",
+                self.url
+            ))
+            .headers(self.headers.clone())
+            .json(&net_config)
+            .send()
+            .await?;
+
+        dbg!(config.text().await?);
 
         Ok(())
     }

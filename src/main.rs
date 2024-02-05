@@ -4,12 +4,11 @@ mod auth;
 use auth::*;
 mod client;
 use client::*;
-use core::time::Duration;
 use serde_json::Value;
 use std::error::Error;
-use std::thread;
 use std::{collections::HashMap, process::exit};
 use tokio;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     /*
@@ -247,6 +246,43 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         println!("{}", client_error);
                     }
                 };
+            }
+
+            ReplCommand::Config {
+                node,
+                vmid,
+                net_device,
+                bridge,
+                mac,
+                vlan,
+            } => {
+                dbg!("test in main");
+                let mut net_config_args = HashMap::new();
+
+                net_config_args.insert("bridge", Value::from(bridge));
+
+                if mac.is_some() {
+                    net_config_args.insert("macaddr", Value::from(mac));
+                }
+                if vlan.is_some() {
+                    net_config_args.insert("tag", Value::from(vlan));
+                }
+
+                dbg!(&net_config_args);
+
+                match &client {
+                    Some(_client) => {
+                        dbg!("client matched fr fr");
+                        let _output = &_client
+                            .set_vm_net_config(node, vmid, net_device.as_str(), net_config_args)
+                            .await?;
+
+                        dbg!(_output);
+                    }
+                    None => {
+                        println!("{}", client_error)
+                    }
+                }
             }
 
             ReplCommand::Quit => {
