@@ -10,6 +10,7 @@ use std::error::Error;
 use std::fs;
 use std::{collections::HashMap, process::exit};
 use tokio;
+use toml::Table;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -293,7 +294,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
 
             ReplCommand::Import { path } => {
-                let test = fs::read_to_string(path);
+                let test = fs::read_to_string(path).unwrap().parse::<Table>().unwrap();
+                for machine in test.get("machines").unwrap().as_table().unwrap() {
+                    dbg!(machine.1.get("destination_vmid"));
+                }
             }
         }
     }
