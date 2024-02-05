@@ -1,0 +1,35 @@
+name: CrimeWave
+batches: 4
+root_vmid: 90
+bridge: vmbr1
+machines:
+  forensics100:
+    name: for100
+    template_vmid: 6969
+    destination_vmid: 10
+    mac_addr: AA:BB:CC:DD:EE:FF
+  forensics200:
+    name: for200
+    template_vmid: 6970
+    destination_vmid: 11
+    mac_addr: AA:BB:CC:DD:EE:EE
+  forensics300:
+    name: for300
+    template_vmid: 6971
+    destination_vmid: 12
+    mac_addr: AA:BB:CC:DD:EE:DD
+  web100:
+    name: web100
+    template_vmid: 6972
+    destination_vmid: 20
+    mac_addr: AA:BB:CC:DD:EE:CC
+  web200:
+    name: web200
+    template_vmid: 6972
+    destination_vmid: 21
+    mac_addr: AA:BB:CC:DD:EE:BB
+  web300:
+    name: web300
+    template_vmid: 6973
+    destination_vmid: 22
+    mac_addr: AA:BB:CC:DD:EE:AA
