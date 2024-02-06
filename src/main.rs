@@ -293,10 +293,84 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 exit(0);
             }
 
+            //TODO This needs to be massively unshat because it is a hacked together solution
             ReplCommand::Import { path } => {
-                let test = fs::read_to_string(path).unwrap().parse::<Table>().unwrap();
-                for machine in test.get("machines").unwrap().as_table().unwrap() {
-                    dbg!(machine.1.get("destination_vmid"));
+                let template = fs::read_to_string(path).unwrap().parse::<Table>().unwrap();
+                let template_name = template.get("name").unwrap().to_string().replace("\"", "");
+                let node = template.get("node").unwrap().to_string().replace("\"", "");
+                let batches = template.get("batches").unwrap().as_integer();
+                let root_vmid = template.get("root_vmid").unwrap().as_integer();
+                let bridge = template
+                    .get("bridge")
+                    .unwrap()
+                    .to_string()
+                    .replace("\"", "");
+
+                match &client {
+                    Some(_client) => {
+                        let (padding_size, batches) = match batches {
+                            Some(_batches) => (_batches.clone().to_string().len(), _batches),
+                            None => {
+                                panic!("Aw shit");
+                            }
+                        };
+                        for batch in 0..batches + 1 {
+                            let batch_id = batch + 1;
+                            for machine in template.get("machines").unwrap().as_table().unwrap() {
+                                let name =
+                                    machine.1.get("name").unwrap().to_string().replace("\"", "");
+                                let template_vmid = machine
+                                    .1
+                                    .get("template_vmid")
+                                    .unwrap()
+                                    .as_integer()
+                                    .unwrap();
+                                let destination_vmid = machine
+                                    .1
+                                    .get("destination_vmid")
+                                    .unwrap()
+                                    .as_integer()
+                                    .unwrap();
+                                let mac_addr = machine
+                                    .1
+                                    .get("mac_addr")
+                                    .unwrap()
+                                    .to_string()
+                                    .replace("\"", "");
+
+                                let vmid = format!(
+                                    "{}{:0padding_size$}{}",
+                                    &root_vmid.unwrap(),
+                                    batch_id,
+                                    &destination_vmid,
+                                    padding_size = padding_size,
+                                )
+                                .parse::<u32>()
+                                .unwrap();
+                                println!("{}", vmid);
+
+                                let vm_name = format!("{template_name}-{name}-{batch_id}");
+                                println!("{}", vm_name);
+
+                                let mut clone_args = HashMap::new();
+                                clone_args.insert("name", Value::from(vm_name));
+                                clone_args.insert("newid", Value::from(vmid));
+                                let _clone = &_client
+                                    .clone_vm(node.clone(), template_vmid as i32, clone_args)
+                                    .await?;
+                                let mut net_config_args = HashMap::new();
+                                net_config_args.insert("bridge", Value::from(bridge.clone()));
+                                net_config_args.insert("macaddr", Value::from(mac_addr));
+                                net_config_args.insert("tag", Value::from(batch_id));
+                                let _config = &_client
+                                    .set_vm_net_config(node.clone(), vmid, "net0", net_config_args)
+                                    .await?;
+                            }
+                        }
+                    }
+                    None => {
+                        println!("{}", client_error)
+                    }
                 }
             }
         }
