@@ -225,7 +225,12 @@ impl StewardClient {
 
         //TODO unshitfuck pl0x
         // PS the reason to do this is because the proxmox API basically demands autism
-        net_config_values.push_str("model=virtio,");
+        
+        if lxc == false {
+            net_config_values.push_str("model=e1000,");
+        } else {
+            net_config_values.push_str("name=eth0");
+        }
         for (key, value) in net_config_args {
             net_config_values.push_str(key.to_string().as_str());
             net_config_values.push_str("=");
