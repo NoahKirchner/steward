@@ -252,7 +252,7 @@ impl StewardClient {
         dbg!(&net_config);
         let config = self
             .client
-            .post(url)
+            .put(url)
             .headers(self.headers.clone())
             .json(&net_config)
             .send()
