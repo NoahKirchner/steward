@@ -296,6 +296,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 if mac.is_some() {
                     if lxc_check == true {
                         net_config_args.insert("hwaddr", Value::from(mac));
+                        net_config_args.insert("ip", Value::from("dhcp"));
                     } else {
                     net_config_args.insert("macaddr", Value::from(mac));
                     }
@@ -402,6 +403,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 net_config_args.insert("bridge", Value::from(bridge.clone()));
                                 if lxc_check == true {
                                     net_config_args.insert("hwaddr", Value::from(mac_addr));
+                                    net_config_args.insert("ip", Value::from("dhcp"));
                                 } else {
                                     net_config_args.insert("macaddr", Value::from(mac_addr));
                                 }
