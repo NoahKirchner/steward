@@ -164,7 +164,7 @@ impl StewardClient {
         //.text()
         //.await?;
 
-        dbg!(clone);
+        dbg!(clone.text().await?);
 
         Ok(())
     }
