@@ -96,7 +96,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let lxc_check: bool;
 
                 if lxc.is_some() {
-                    lxc_check = true;
+                    //AAAAAH IM SORRY
+                    lxc_check = lxc.unwrap();
                 } else {
                     lxc_check = false;
                 }
@@ -263,6 +264,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 };
             }
 
+            // im sorry for more lxc hackjob stuff
             ReplCommand::Config {
                 node,
                 vmid,
@@ -270,11 +272,26 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 bridge,
                 mac,
                 vlan,
+                lxc,
             } => {
                 dbg!("test in main");
+                
+                let lxc_check;
+
+                if lxc.is_some() {
+                    //AAAAAH IM SORRY
+                    lxc_check = lxc.unwrap();
+                } else {
+                    lxc_check = false;
+                }
+
+
                 let mut net_config_args = HashMap::new();
 
+
                 net_config_args.insert("bridge", Value::from(bridge));
+
+                
 
                 if mac.is_some() {
                     net_config_args.insert("macaddr", Value::from(mac));
@@ -289,7 +306,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     Some(_client) => {
                         dbg!("client matched fr fr");
                         let _output = &_client
-                            .set_vm_net_config(node, vmid, net_device.as_str(), net_config_args)
+                            .set_vm_net_config(lxc_check, node, vmid, net_device.as_str(), net_config_args)
                             .await?;
 
                         dbg!(_output);
@@ -381,7 +398,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 net_config_args.insert("macaddr", Value::from(mac_addr));
                                 net_config_args.insert("tag", Value::from(batch_id));
                                 let _config = &_client
-                                    .set_vm_net_config(node.clone(), vmid, "net0", net_config_args)
+                                    .set_vm_net_config(lxc_check, node.clone(), vmid, "net0", net_config_args)
                                     .await?;
                             }
                         }

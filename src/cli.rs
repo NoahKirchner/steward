@@ -286,6 +286,9 @@ pub enum ReplCommand {
 
         #[arg(help = "Set the vlan", long)]
         vlan: Option<u32>,
+
+        #[arg(help = "Whether or not the VM is an LXC", long)]
+        lxc: Option<bool>,
     },
 
     Import {

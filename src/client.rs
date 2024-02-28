@@ -211,6 +211,7 @@ impl StewardClient {
 
     pub async fn set_vm_net_config(
         &self,
+        lxc: bool,
         node: String,
         vmid: u32,
         net_device: &str,
@@ -237,13 +238,21 @@ impl StewardClient {
         // TODO unshitfuck this please
         net_config.insert(net_device, net_config_values);
 
+        let mut url = String::new();
+
+        match lxc {
+            true => {
+                url = format!("{}/api2/json/nodes/{node}/lxc/{vmid}/config", self.url);
+            }
+            false => {
+                url = format!("{}/api2/json/nodes/{node}/lxc/{vmid}/config", self.url);
+            }
+        }
+
         dbg!(&net_config);
         let config = self
             .client
-            .post(format!(
-                "{}/api2/json/nodes/{node}/qemu/{vmid}/config",
-                self.url
-            ))
+            .post(url)
             .headers(self.headers.clone())
             .json(&net_config)
             .send()
