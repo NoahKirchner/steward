@@ -86,10 +86,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 dest_vmid,
                 description,
                 full,
+                lxc,
                 name,
                 pool,
             } => {
                 let mut clone_args = HashMap::new();
+                
+                // God forgive me for what i am doing here but this needs lxc support asap
+                let lxc_check: bool;
+
+                if lxc.is_some() {
+                    lxc_check = true;
+                } else {
+                    lxc_check = false;
+                }
 
                 if full.is_some() {
                     clone_args.insert("full", Value::from(full));
@@ -127,6 +137,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                     let _output = &_client
                                         .clone_vm(
+                                            lxc_check,
                                             node.to_owned(),
                                             source_vmid.to_owned(),
                                             _clone_args,
@@ -177,6 +188,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                     let _output = &_client
                                         .clone_vm(
+                                            lxc_check,
                                             node.to_owned(),
                                             source_vmid.to_owned(),
                                             _clone_args,
@@ -191,7 +203,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     clone_args.insert("name", Value::from(name));
                                 }
                                 let _output =
-                                    &_client.clone_vm(node, source_vmid, clone_args).await?;
+                                    &_client.clone_vm(lxc_check, node, source_vmid, clone_args).await?;
                             }
                         }
                     }
@@ -337,6 +349,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     .unwrap()
                                     .to_string()
                                     .replace("\"", "");
+                                let lxc_check = machine 
+                                    .1 
+                                    .get("lxc")
+                                    .unwrap()
+                                    .as_bool()
+                                    .unwrap();
 
                                 let vmid = format!(
                                     "{}{:0padding_size$}{}",
@@ -356,7 +374,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 clone_args.insert("name", Value::from(vm_name));
                                 clone_args.insert("newid", Value::from(vmid));
                                 let _clone = &_client
-                                    .clone_vm(node.clone(), template_vmid as i32, clone_args)
+                                    .clone_vm(lxc_check, node.clone(), template_vmid as i32, clone_args)
                                     .await?;
                                 let mut net_config_args = HashMap::new();
                                 net_config_args.insert("bridge", Value::from(bridge.clone()));

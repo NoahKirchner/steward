@@ -212,6 +212,13 @@ pub enum ReplCommand {
         )]
         full: Option<bool>,
 
+        #[arg(
+            help = "Set this flag if the target is an lxc",
+            short,
+            long
+            )]
+        lxc: Option<bool>,
+
         #[arg(help = "The name of the VM. Defaults to the VMID", short, long)]
         name: Option<String>,
 

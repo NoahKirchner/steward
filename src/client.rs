@@ -128,23 +128,35 @@ impl StewardClient {
 
     pub async fn clone_vm(
         &self,
+        lxc: bool,
         node: String,
         source_vmid: i32,
-        clone_args: HashMap<&str, Value>,
+        mut clone_args: HashMap<&str, Value>,
     ) -> Result<(), Box<dyn Error>> {
         // TODO Check here to see if a pool exists or if a vmid is conflicting with the destination
         // otherwise the clone will fail
         //
 
-        // REALLY BAD SOLUTION BUT we are on a time crunch my brutha
+        // REALLY BAD SOLUTION BUT we are on a time crunch my brutha (another bad solution is here
+        // now as well)
+        let mut url = String::new();
+        match lxc {
+            true => {
+                url = format!("{}/api2/json/nodes/{node}/lxc/{source_vmid}/clone", self.url);
+                if clone_args.contains_key("name") {
+                    let name = clone_args.remove("name").unwrap().to_owned();
+                    clone_args.insert("hostname", name);
+                } 
+            }
+            false => {
+                url = format!("{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone", self.url);
+            }
+        }
         let timeout = std::time::Duration::from_millis(1000);
         std::thread::sleep(timeout);
         let clone = self
             .client
-            .post(format!(
-                "{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone",
-                self.url
-            ))
+            .post(url)
             .headers(self.headers.clone())
             .json(&clone_args)
             .send()
