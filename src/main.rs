@@ -294,8 +294,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 
 
                 if mac.is_some() {
+                    if lxc_check == true {
+                        net_config_args.insert("hwaddr", Value::from(mac));
+                    } else {
                     net_config_args.insert("macaddr", Value::from(mac));
+                    }
                 }
+
                 if vlan.is_some() {
                     net_config_args.insert("tag", Value::from(vlan));
                 }
@@ -395,7 +400,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     .await?;
                                 let mut net_config_args = HashMap::new();
                                 net_config_args.insert("bridge", Value::from(bridge.clone()));
-                                net_config_args.insert("macaddr", Value::from(mac_addr));
+                                if lxc_check == true {
+                                    net_config_args.insert("hwaddr", Value::from(mac_addr));
+                                } else {
+                                    net_config_args.insert("macaddr", Value::from(mac_addr));
+                                }
                                 net_config_args.insert("tag", Value::from(batch_id));
                                 let _config = &_client
                                     .set_vm_net_config(lxc_check, node.clone(), vmid, "net0", net_config_args)
