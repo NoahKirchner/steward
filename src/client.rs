@@ -227,7 +227,7 @@ impl StewardClient {
         // PS the reason to do this is because the proxmox API basically demands autism
         
         if lxc == false {
-            net_config_values.push_str("model=virtio,");
+            net_config_values.push_str("model=e1000,");
         } else {
             net_config_values.push_str("name=eth0,");
         }
@@ -250,7 +250,7 @@ impl StewardClient {
                 url = format!("{}/api2/json/nodes/{node}/lxc/{vmid}/config", self.url);
             }
             false => {
-                url = format!("{}/api2/json/nodes/{node}/lxc/{vmid}/config", self.url);
+                url = format!("{}/api2/json/nodes/{node}/qemu/{vmid}/config", self.url);
             }
         }
 
