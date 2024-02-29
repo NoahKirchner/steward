@@ -396,6 +396,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 let mut clone_args = HashMap::new();
                                 clone_args.insert("name", Value::from(vm_name));
                                 clone_args.insert("newid", Value::from(vmid));
+                                if lxc_check == true {
+                                    clone_args.insert("full", Value::from(true));
+                                }
                                 let _clone = &_client
                                     .clone_vm(lxc_check, node.clone(), template_vmid as i32, clone_args)
                                     .await?;

@@ -4,38 +4,44 @@ batches = 4
 root_vmid = 90
 bridge = "vmbr1"
 
-[machines.forensics100]
-name = "for100"
-template_vmid = 6969
-destination_vmid = 10
-mac_addr = "AA:BB:CC:DD:EE:FF"
+[machines.binex100]
+name = "binex100"
+template_vmid = 70002
+destination_vmid = 30
+mac_addr = "AA:BB:CC:DD:EE:1E"
+lxc = true
 
 [machines.forensics200]
-name = "for200"
-template_vmid = 6970
-destination_vmid = 11
-mac_addr = "AA:BB:CC:DD:EE:EE"
+name = "binex200"
+template_vmid = 70003
+destination_vmid = 31
+mac_addr = "AA:BB:CC:DD:EE:1F"
+lxc = true
 
 [machines.forensics300]
-name = "for300"
-template_vmid = 6971
-destination_vmid = 12
-mac_addr = "AA:BB:CC:DD:EE:DD"
+name = "binex300"
+template_vmid = 70004
+destination_vmid = 32
+mac_addr = "AA:BB:CC:DD:EE:20"
+lxc = true
 
 [machines.web100]
-name = "web100"
-template_vmid = 6972
+name = "vmtest100"
+template_vmid = 20014
 destination_vmid = 20
-mac_addr = "AA:BB:CC:DD:EE:CC"
+mac_addr = "AA:BB:CC:DD:EE:14"
+lxc = false
 
 [machines.web200]
-name = "web200"
-template_vmid = 6972
+name = "vmtest200"
+template_vmid = 20014
 destination_vmid = 21
-mac_addr = "AA:BB:CC:DD:EE:BB"
+mac_addr = "AA:BB:CC:DD:EE:15"
+lxc = false
 
 [machines.web300]
-name = "web300"
-template_vmid = 6973
+name = "vmtest300"
+template_vmid = 20014
 destination_vmid = 22
-mac_addr = "AA:BB:CC:DD:EE:AA"
+mac_addr = "AA:BB:CC:DD:EE:16"
+lxc = false
