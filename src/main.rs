@@ -392,6 +392,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 let vm_name = format!("{template_name}-{name}-{batch_id}");
                                 println!("{}", vm_name);
+                                
+                                println!("IS THIS AN LXC OR NAH CUH: {lxc_check}");
 
                                 let mut clone_args = HashMap::new();
                                 clone_args.insert("name", Value::from(vm_name));
