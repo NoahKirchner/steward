@@ -227,7 +227,7 @@ impl StewardClient {
         // PS the reason to do this is because the proxmox API basically demands autism
         
         if lxc == false {
-            net_config_values.push_str("model=e1000,");
+            net_config_values.push_str("model=virtio,");
         } else {
             net_config_values.push_str("name=eth0,");
         }
