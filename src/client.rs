@@ -167,7 +167,7 @@ impl StewardClient {
         dbg!(clone.text().await?);
 
         // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
-        std::thread::sleep(std::time::Duration::from_millis(2000));
+        std::thread::sleep(std::time::Duration::from_millis(10000));
         Ok(())
     }
 
