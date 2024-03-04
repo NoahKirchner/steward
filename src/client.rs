@@ -126,6 +126,19 @@ impl StewardClient {
         Ok(node_map)
     }
 
+    pub async fn job_status(&self, node:String, upid:String)-> Result<bool, Box<dyn Error>> {
+        let url = format!("{}/api2/json/nodes/{node}/tasks/{upid}/status", self.url);
+        let status = self.client
+            .get(url)
+            .headers(self.headers.clone())
+            .send()
+            .await?
+            .text()
+            .await?;
+        dbg!(status);
+        Ok(true)
+    }
+
     pub async fn clone_vm(
         &self,
         lxc: bool,
@@ -160,11 +173,11 @@ impl StewardClient {
             .headers(self.headers.clone())
             .json(&clone_args)
             .send()
+            .await?
+            .text()
             .await?;
-        //.text()
-        //.await?;
 
-        dbg!(clone.text().await?);
+        dbg!(clone);
 
         // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
         std::thread::sleep(std::time::Duration::from_millis(10000));
