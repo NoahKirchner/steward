@@ -199,6 +199,7 @@ impl StewardClient {
         println!("{}", upid.clone());
 
         while self.job_status(node.clone(), upid.clone()).await? == false {
+            print!("Still running");
             std::thread::sleep(std::time::Duration::from_millis(2000));
         } 
 
