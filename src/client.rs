@@ -135,8 +135,18 @@ impl StewardClient {
             .await?
             .text()
             .await?;
-        dbg!(status);
-        Ok(true)
+        
+        let v: Value = serde_json::from_str(status.as_str()).unwrap();
+        let raw_status: Value = serde_json::from_value(v["data"]["status"].clone())?;
+        let status = raw_status.to_string().replace('"', "");
+
+        match status.as_str() {
+            "running" => Ok(false),
+            "stopped" => Ok(true),
+            // replace later please god
+            _ => panic!()
+        }
+
     }
 
     pub async fn clone_vm(
@@ -188,10 +198,11 @@ impl StewardClient {
         let upid = raw_upid.to_string().replace('"',"");
         println!("{}", upid.clone());
 
-        let test = self.job_status(node, upid).await?;
+        while self.job_status(node.clone(), upid.clone()).await? == false {
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+        } 
 
         // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
-        std::thread::sleep(std::time::Duration::from_millis(10000));
         Ok(())
     }
 
