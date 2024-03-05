@@ -183,7 +183,7 @@ impl StewardClient {
         let v: Value = serde_json::from_str(clone.as_str()).unwrap();
         
 
-        let upid: Vec<Value> = serde_json::from_value(v["data"].clone())?;
+        let upid: Value = serde_json::from_value(v["data"].clone())?;
 
         dbg!(upid);
 
