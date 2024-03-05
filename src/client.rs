@@ -186,6 +186,7 @@ impl StewardClient {
         // please unshitfuck this
         let upid: Value = serde_json::from_value(v["data"].clone())?;
 
+        println!("{}", upid.clone().to_string());
         let test = self.job_status(node, upid.to_string()).await?;
 
         // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
