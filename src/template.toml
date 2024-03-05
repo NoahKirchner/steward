@@ -28,7 +28,7 @@ lxc = true
 [machines.scripting]
 name = "scripting"
 template_vmid = 20039
-destination_vmid = 05
+destination_vmid = 5
 mac_addr = "DE:AD:BE:EF:37:05"
 lxc = true
 
@@ -80,5 +80,4 @@ template_vmid = 20028
 destination_vmid = 22
 mac_addr = "DE:AD:BE:EF:37:16"
 lxc = false
-
 
