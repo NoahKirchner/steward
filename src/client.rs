@@ -177,7 +177,15 @@ impl StewardClient {
             .text()
             .await?;
 
-        dbg!(clone);
+        //dbg!(clone);
+        
+        // hey retard don't forget to match this instead of unwrapping @TODO
+        let v: Value = serde_json::from_str(clone.as_str()).unwrap();
+        
+
+        let upid: Vec<Value> = serde_json::from_value(v["data"].clone())?;
+
+        dbg!(upid);
 
         // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
         std::thread::sleep(std::time::Duration::from_millis(10000));
