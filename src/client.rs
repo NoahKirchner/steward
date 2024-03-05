@@ -183,9 +183,10 @@ impl StewardClient {
         let v: Value = serde_json::from_str(clone.as_str()).unwrap();
         
 
+        // please unshitfuck this
         let upid: Value = serde_json::from_value(v["data"].clone())?;
 
-        dbg!(upid);
+        self.job_status(node, upid.to_string());
 
         // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
         std::thread::sleep(std::time::Duration::from_millis(10000));
