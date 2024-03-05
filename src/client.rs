@@ -184,10 +184,11 @@ impl StewardClient {
         
 
         // please unshitfuck this
-        let upid: Value = serde_json::from_value(v["data"].clone())?;
+        let raw_upid: Value = serde_json::from_value(v["data"].clone())?;
+        let upid = raw_upid.to_string().replace('"',"");
+        println!("{}", upid.clone());
 
-        println!("{}", upid.clone().to_string());
-        let test = self.job_status(node, upid.to_string()).await?;
+        let test = self.job_status(node, upid).await?;
 
         // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
         std::thread::sleep(std::time::Duration::from_millis(10000));
