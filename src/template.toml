@@ -37,7 +37,7 @@ name = "forensics"
 template_vmid = 70008
 destination_vmid = 13
 mac_addr = "DE:AD:BE:EF:37:82"
-lxc = false
+lxc = true
 
 [machines.web100]
 name = "web100"
@@ -58,7 +58,7 @@ name = "web300"
 template_vmid = 70007
 destination_vmid = 12
 mac_addr = "DE:AD:BE:EF:37:0C"
-lxc = false
+lxc = true
 
 #[machines.ad100]
 # name = "ad100"
