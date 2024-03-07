@@ -349,7 +349,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 panic!("Aw shit");
                             }
                         };
-                        for batch in 0..batches + 1 {
+                        for batch in 1..batches + 1 {
                             let batch_id = batch + 1;
                             for machine in template.get("machines").unwrap().as_table().unwrap() {
                                 let name =

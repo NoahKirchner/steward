@@ -1,6 +1,6 @@
 name = "CrimeWave"
 node = "dale"
-batches = 10
+batches = 1
 root_vmid = 90
 bridge = "vmbr1"
 
@@ -33,8 +33,8 @@ mac_addr = "DE:AD:BE:EF:37:05"
 lxc = true
 
 [machines.forensics]
-name = "PLACEHOLDERforensics"
-template_vmid = 20014
+name = "forensics"
+template_vmid = 70008
 destination_vmid = 13
 mac_addr = "DE:AD:BE:EF:37:82"
 lxc = false
@@ -54,30 +54,30 @@ mac_addr = "DE:AD:BE:EF:37:0B"
 lxc = true
 
 [machines.web300]
-name = "PLACEHOLDERweb300"
-template_vmid = 20014
+name = "web300"
+template_vmid = 70007
 destination_vmid = 12
 mac_addr = "DE:AD:BE:EF:37:0C"
 lxc = false
 
-[machines.ad100]
-name = "ad100"
-template_vmid = 20029
-destination_vmid = 20
-mac_addr = "DE:AD:BE:EF:37:14"
-lxc = false
+#[machines.ad100]
+# name = "ad100"
+# template_vmid = 20029
+# destination_vmid = 20
+# mac_addr = "DE:AD:BE:EF:37:14"
+# lxc = false
 
-[machines.ad200]
-name = "ad200"
-template_vmid = 20038
-destination_vmid = 21
-mac_addr = "DE:AD:BE:EF:37:15"
-lxc = false
+# [machines.ad200]
+# name = "ad200"
+# template_vmid = 20038
+# destination_vmid = 21
+# mac_addr = "DE:AD:BE:EF:37:15"
+# lxc = false
 
-[machines.ad300]
-name = "ad300"
-template_vmid = 20028
-destination_vmid = 22
-mac_addr = "DE:AD:BE:EF:37:16"
-lxc = false
+#[machines.ad300]
+# name = "ad300"
+# template_vmid = 20028
+# destination_vmid = 22
+# mac_addr = "DE:AD:BE:EF:37:16"
+# lxc = false
 
