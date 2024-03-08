@@ -403,6 +403,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 for entry in interfaces {
                                     let mut net_config_args = HashMap::new();
+                                    dbg!(entry.clone());
                                     let interface = entry.get("interface").unwrap().to_string().replace("\"", "");
                                     let mac_addr = entry.get("mac_addr").unwrap().to_string().replace("\"", "");
                                     let bridge = entry.get("bridge").unwrap().to_string().replace("\"", "");
