@@ -368,8 +368,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     .get("interfaces")
                                     .unwrap()
                                     .as_array()
-                                    .unwrap()
-                                    .to_vec();
+                                    .unwrap();
                                 let lxc_check = machine 
                                     .1 
                                     .get("lxc")
@@ -406,9 +405,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 for entry in interfaces {
                                     let mut net_config_args = HashMap::new();
                                     dbg!(entry.clone());
-                                    let interface = entry.get("interface").unwrap().to_string().replace("\"", "");
-                                    let mac_addr = entry.get("mac_addr").unwrap().to_string().replace("\"", "");
-                                    let bridge = entry.get("bridge").unwrap().to_string().replace("\"", "");
+                                    let _entry = entry.as_table().unwrap();
+                                    let interface = _entry.get("interface").unwrap().to_string().replace("\"", "");
+                                    let mac_addr = _entry.get("mac_addr").unwrap().to_string().replace("\"", "");
+                                    let bridge = _entry.get("bridge").unwrap().to_string().replace("\"", "");
 
                                     net_config_args.insert("bridge", Value::from(bridge.clone()));
                                     if lxc_check == true {
