@@ -335,11 +335,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 let node = template.get("node").unwrap().to_string().replace("\"", "");
                 let batches = template.get("batches").unwrap().as_integer();
                 let root_vmid = template.get("root_vmid").unwrap().as_integer();
-                let bridge = template
-                    .get("bridge")
-                    .unwrap()
-                    .to_string()
-                    .replace("\"", "");
 
                 match &client {
                     Some(_client) => {
@@ -366,12 +361,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     .unwrap()
                                     .as_integer()
                                     .unwrap();
-                                let mac_addr = machine
+                                let interfaces = machine
                                     .1
-                                    .get("mac_addr")
+                                    .get("interfaces")
                                     .unwrap()
-                                    .to_string()
-                                    .replace("\"", "");
+                                    .as_array()
+                                    .unwrap()
+                                    .to_vec();
                                 let lxc_check = machine 
                                     .1 
                                     .get("lxc")
@@ -404,18 +400,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 let _clone = &_client
                                     .clone_vm(lxc_check, node.clone(), template_vmid as i32, clone_args)
                                     .await?;
-                                let mut net_config_args = HashMap::new();
-                                net_config_args.insert("bridge", Value::from(bridge.clone()));
-                                if lxc_check == true {
-                                    net_config_args.insert("hwaddr", Value::from(mac_addr));
-                                    net_config_args.insert("ip", Value::from("dhcp"));
-                                } else {
-                                    net_config_args.insert("macaddr", Value::from(mac_addr));
+
+                                for entry in interfaces {
+                                    let mut net_config_args = HashMap::new();
+                                    let interface = entry.get("interface").unwrap().to_string().replace("\"", "");
+                                    let mac_addr = entry.get("mac_addr").unwrap().to_string().replace("\"", "");
+                                    let bridge = entry.get("bridge").unwrap().to_string().replace("\"", "");
+
+                                    net_config_args.insert("bridge", Value::from(bridge.clone()));
+                                    if lxc_check == true {
+                                        net_config_args.insert("hwaddr", Value::from(mac_addr));
+                                        net_config_args.insert("ip", Value::from("dhcp"));
+                                    } else {
+                                        net_config_args.insert("macaddr", Value::from(mac_addr));
+                                    }
+                                    net_config_args.insert("tag", Value::from(batch_id.clone()));
+                                    let _config = &_client.set_vm_net_config(lxc_check, node.clone(), vmid, &interface.as_str(), net_config_args).await?;
+
                                 }
-                                net_config_args.insert("tag", Value::from(batch_id));
-                                let _config = &_client
-                                    .set_vm_net_config(lxc_check, node.clone(), vmid, "net0", net_config_args)
-                                    .await?;
                             }
                         }
                     }

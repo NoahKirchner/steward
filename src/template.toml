@@ -8,76 +8,105 @@ bridge = "vmbr1"
 name = "binex100"
 template_vmid = 70002
 destination_vmid = 31
-mac_addr = "DE:AD:BE:EF:37:1F"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:1F" }
+]
+
 
 [machines.binex200]
 name = "binex200"
 template_vmid = 70003
 destination_vmid = 32
-mac_addr = "DE:AD:BE:EF:37:20"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:20"}
+]
+
 
 [machines.binex300]
 name = "binex300"
 template_vmid = 70004
 destination_vmid = 33
-mac_addr = "DE:AD:BE:EF:37:21"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:21"}
+]
+
 
 [machines.scripting]
 name = "scripting"
 template_vmid = 20039
 destination_vmid = 5
-mac_addr = "DE:AD:BE:EF:37:05"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:05"}
+]
+
 
 [machines.forensics]
 name = "forensics"
 template_vmid = 70008
 destination_vmid = 13
-mac_addr = "DE:AD:BE:EF:37:82"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:82"}
+]
+
 
 [machines.web100]
 name = "web100"
 template_vmid = 70005
 destination_vmid = 10
-mac_addr = "DE:AD:BE:EF:37:0A"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0A"}
+]
+
 
 [machines.web200]
 name = "web200"
 template_vmid = 70006
 destination_vmid = 11
-mac_addr = "DE:AD:BE:EF:37:0B"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0B"}
+]
+
 
 [machines.web300]
 name = "web300"
 template_vmid = 70007
 destination_vmid = 12
-mac_addr = "DE:AD:BE:EF:37:0C"
 lxc = true
+interfaces = [
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0C"}
+]
 
-#[machines.ad100]
-# name = "ad100"
-# template_vmid = 20029
-# destination_vmid = 20
-# mac_addr = "DE:AD:BE:EF:37:14"
-# lxc = false
 
-# [machines.ad200]
-# name = "ad200"
-# template_vmid = 20038
-# destination_vmid = 21
-# mac_addr = "DE:AD:BE:EF:37:15"
-# lxc = false
+[machines.ad100]
+name = "ad100"
+template_vmid = 20029
+destination_vmid = 20
+lxc = false
+interfaces = [
+    { interfaces="net0", mac_addr = "DE:AD:BE:EF:37:14" },
+    { interface="net1", mac_addr = "AA:AA:AA:AA:AA:AA"}
+]
 
-#[machines.ad300]
-# name = "ad300"
-# template_vmid = 20028
-# destination_vmid = 22
-# mac_addr = "DE:AD:BE:EF:37:16"
-# lxc = false
-
+[machines.ad200]
+name = "ad200"
+template_vmid = 20038
+destination_vmid = 21
+lxc = false
+interfaces = [
+    { interface="net1", mac_addr = "BB:BB:BB:BB:BB:BB"}
+]
+[machines.ad300]
+name = "ad300"
+template_vmid = 20028
+destination_vmid = 22
+lxc = false
+interfaces = [
+    { interface="net1", mac_addr = "CC:CC:CC:CC:CC:CC"}
+]
