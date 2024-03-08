@@ -2,7 +2,6 @@ name = "CrimeWave"
 node = "dale"
 batches = 1
 root_vmid = 90
-bridge = "vmbr1"
 
 [machines.binex100]
 name = "binex100"
@@ -10,7 +9,7 @@ template_vmid = 70002
 destination_vmid = 31
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:1F" }
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:1F", bridge = "vmbr1"}
 ]
 
 
@@ -20,7 +19,7 @@ template_vmid = 70003
 destination_vmid = 32
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:20"}
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:20", bridge = "vmbr1"}
 ]
 
 
@@ -30,7 +29,7 @@ template_vmid = 70004
 destination_vmid = 33
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:21"}
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:21", bridge = "vmbr1"}
 ]
 
 
@@ -40,7 +39,7 @@ template_vmid = 20039
 destination_vmid = 5
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:05"}
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:05", bridge = "vmbr1"}
 ]
 
 
@@ -50,7 +49,7 @@ template_vmid = 70008
 destination_vmid = 13
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:82"}
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:82", bridge = "vmbr1"}
 ]
 
 
@@ -60,7 +59,7 @@ template_vmid = 70005
 destination_vmid = 10
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0A"}
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0A", bridge = "vmbr1"}
 ]
 
 
@@ -70,7 +69,7 @@ template_vmid = 70006
 destination_vmid = 11
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0B"}
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0B", bridge = "vmbr1"}
 ]
 
 
@@ -80,33 +79,34 @@ template_vmid = 70007
 destination_vmid = 12
 lxc = true
 interfaces = [
-    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0C"}
+    { interface="net0", mac_addr = "DE:AD:BE:EF:37:0C", bridge = "vmbr1"}
 ]
 
 
 [machines.ad100]
 name = "ad100"
-template_vmid = 20029
+template_vmid = 20091
 destination_vmid = 20
 lxc = false
 interfaces = [
-    { interfaces="net0", mac_addr = "DE:AD:BE:EF:37:14" },
-    { interface="net1", mac_addr = "AA:AA:AA:AA:AA:AA"}
+    { interfaces="net0", mac_addr = "DE:AD:BE:EF:37:14", bridge = "vmbr1" },
+    { interface="net1", mac_addr = "AA:AA:AA:AA:AA:AA", bridge = "vmbr2"}
 ]
 
 [machines.ad200]
 name = "ad200"
-template_vmid = 20038
+template_vmid = 20089
 destination_vmid = 21
 lxc = false
 interfaces = [
-    { interface="net1", mac_addr = "BB:BB:BB:BB:BB:BB"}
+    { interface="net1", mac_addr = "BB:BB:BB:BB:BB:BB", bridge = "vmbr2"}
 ]
+
 [machines.ad300]
 name = "ad300"
-template_vmid = 20028
+template_vmid = 20090
 destination_vmid = 22
 lxc = false
 interfaces = [
-    { interface="net1", mac_addr = "CC:CC:CC:CC:CC:CC"}
+    { interface="net1", mac_addr = "CC:CC:CC:CC:CC:CC", bridge = "vmbr2"}
 ]
