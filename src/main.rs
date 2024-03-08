@@ -346,7 +346,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         };
                         for batch in 1..batches + 1 {
                             let batch_id = batch + 1;
+                            dbg!(template.clone());
                             for machine in template.get("machines").unwrap().as_table().unwrap() {
+                                dbg!(machine.clone());
                                 let name =
                                     machine.1.get("name").unwrap().to_string().replace("\"", "");
                                 let template_vmid = machine
