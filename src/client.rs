@@ -175,6 +175,7 @@ impl StewardClient {
                 url = format!("{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone", self.url);
             }
         }
+        dbg!(clone_args.clone());
         let timeout = std::time::Duration::from_millis(1000);
         std::thread::sleep(timeout);
         let clone = self
