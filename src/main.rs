@@ -5,9 +5,12 @@ use auth::*;
 mod client;
 use client::*;
 use serde_json::Value;
+use std::env;
 use std::error::Error;
+use std::fs;
 use std::{collections::HashMap, process::exit};
 use tokio;
+use toml::Table;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -83,10 +86,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 dest_vmid,
                 description,
                 full,
+                lxc,
                 name,
                 pool,
             } => {
                 let mut clone_args = HashMap::new();
+                
+                // God forgive me for what i am doing here but this needs lxc support asap
+                let lxc_check: bool;
+
+                if lxc.is_some() {
+                    //AAAAAH IM SORRY
+                    lxc_check = lxc.unwrap();
+                } else {
+                    lxc_check = false;
+                }
 
                 if full.is_some() {
                     clone_args.insert("full", Value::from(full));
@@ -124,6 +138,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                     let _output = &_client
                                         .clone_vm(
+                                            lxc_check,
                                             node.to_owned(),
                                             source_vmid.to_owned(),
                                             _clone_args,
@@ -174,6 +189,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                     let _output = &_client
                                         .clone_vm(
+                                            lxc_check,
                                             node.to_owned(),
                                             source_vmid.to_owned(),
                                             _clone_args,
@@ -188,7 +204,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     clone_args.insert("name", Value::from(name));
                                 }
                                 let _output =
-                                    &_client.clone_vm(node, source_vmid, clone_args).await?;
+                                    &_client.clone_vm(lxc_check, node, source_vmid, clone_args).await?;
                             }
                         }
                     }
@@ -248,6 +264,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 };
             }
 
+            // im sorry for more lxc hackjob stuff
             ReplCommand::Config {
                 node,
                 vmid,
@@ -255,15 +272,36 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 bridge,
                 mac,
                 vlan,
+                lxc,
             } => {
                 dbg!("test in main");
+                
+                let lxc_check;
+
+                if lxc.is_some() {
+                    //AAAAAH IM SORRY
+                    lxc_check = lxc.unwrap();
+                } else {
+                    lxc_check = false;
+                }
+
+
                 let mut net_config_args = HashMap::new();
+
 
                 net_config_args.insert("bridge", Value::from(bridge));
 
+                
+
                 if mac.is_some() {
+                    if lxc_check == true {
+                        net_config_args.insert("hwaddr", Value::from(mac));
+                        net_config_args.insert("ip", Value::from("dhcp"));
+                    } else {
                     net_config_args.insert("macaddr", Value::from(mac));
+                    }
                 }
+
                 if vlan.is_some() {
                     net_config_args.insert("tag", Value::from(vlan));
                 }
@@ -274,7 +312,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     Some(_client) => {
                         dbg!("client matched fr fr");
                         let _output = &_client
-                            .set_vm_net_config(node, vmid, net_device.as_str(), net_config_args)
+                            .set_vm_net_config(lxc_check, node, vmid, net_device.as_str(), net_config_args)
                             .await?;
 
                         dbg!(_output);
@@ -288,6 +326,108 @@ async fn main() -> Result<(), Box<dyn Error>> {
             ReplCommand::Quit => {
                 println!("pce");
                 exit(0);
+            }
+
+            //TODO This needs to be massively unshat because it is a hacked together solution
+            ReplCommand::Import { path } => {
+                let template = fs::read_to_string(path).unwrap().parse::<Table>().unwrap();
+                let template_name = template.get("name").unwrap().to_string().replace("\"", "");
+                let node = template.get("node").unwrap().to_string().replace("\"", "");
+                let batches = template.get("batches").unwrap().as_integer();
+                let root_vmid = template.get("root_vmid").unwrap().as_integer();
+
+                match &client {
+                    Some(_client) => {
+                        let (padding_size, batches) = match batches {
+                            Some(_batches) => (_batches.clone().to_string().len(), _batches),
+                            None => {
+                                panic!("Aw shit");
+                            }
+                        };
+                        for batch in 1..batches + 1 {
+                            let batch_id = batch + 1;
+                            dbg!(template.clone());
+                            for machine in template.get("machines").unwrap().as_table().unwrap() {
+                                dbg!(machine.clone());
+                                let name =
+                                    machine.1.get("name").unwrap().to_string().replace("\"", "");
+                                let template_vmid = machine
+                                    .1
+                                    .get("template_vmid")
+                                    .unwrap()
+                                    .as_integer()
+                                    .unwrap();
+                                let destination_vmid = machine
+                                    .1
+                                    .get("destination_vmid")
+                                    .unwrap()
+                                    .as_integer()
+                                    .unwrap();
+                                let interfaces = machine
+                                    .1
+                                    .get("interfaces")
+                                    .unwrap()
+                                    .as_array()
+                                    .unwrap();
+                                let lxc_check = machine 
+                                    .1 
+                                    .get("lxc")
+                                    .unwrap()
+                                    .as_bool()
+                                    .unwrap();
+
+                                let vmid = format!(
+                                    "{}{:0padding_size$}{}",
+                                    &root_vmid.unwrap(),
+                                    batch_id,
+                                    &destination_vmid,
+                                    padding_size = padding_size,
+                                )
+                                .parse::<u32>()
+                                .unwrap();
+                                println!("{}", vmid);
+
+                                let vm_name = format!("{template_name}-{name}-{batch_id}");
+                                println!("{}", vm_name);
+                                
+                                println!("IS THIS AN LXC OR NAH CUH: {lxc_check}");
+
+                                let mut clone_args = HashMap::new();
+                                clone_args.insert("name", Value::from(vm_name));
+                                clone_args.insert("newid", Value::from(vmid));
+                                if lxc_check == true {
+                                    clone_args.insert("full", Value::from(true));
+                                }
+                                let _clone = &_client
+                                    .clone_vm(lxc_check, node.clone(), template_vmid as i32, clone_args)
+                                    .await?;
+
+                                for entry in interfaces {
+                                    let mut net_config_args = HashMap::new();
+                                    dbg!(entry.clone());
+                                    let _entry = entry.as_table().unwrap();
+                                    let interface = _entry.get("interface").unwrap().to_string().replace("\"", "");
+                                    let mac_addr = _entry.get("mac_addr").unwrap().to_string().replace("\"", "");
+                                    let bridge = _entry.get("bridge").unwrap().to_string().replace("\"", "");
+
+                                    net_config_args.insert("bridge", Value::from(bridge.clone()));
+                                    if lxc_check == true {
+                                        net_config_args.insert("hwaddr", Value::from(mac_addr));
+                                        net_config_args.insert("ip", Value::from("dhcp"));
+                                    } else {
+                                        net_config_args.insert("macaddr", Value::from(mac_addr));
+                                    }
+                                    net_config_args.insert("tag", Value::from(batch_id.clone()));
+                                    let _config = &_client.set_vm_net_config(lxc_check, node.clone(), vmid, &interface.as_str(), net_config_args).await?;
+
+                                }
+                            }
+                        }
+                    }
+                    None => {
+                        println!("{}", client_error)
+                    }
+                }
             }
         }
     }

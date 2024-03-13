@@ -212,6 +212,13 @@ pub enum ReplCommand {
         )]
         full: Option<bool>,
 
+        #[arg(
+            help = "Set this flag if the target is an lxc",
+            short,
+            long
+            )]
+        lxc: Option<bool>,
+
         #[arg(help = "The name of the VM. Defaults to the VMID", short, long)]
         name: Option<String>,
 
@@ -279,5 +286,13 @@ pub enum ReplCommand {
 
         #[arg(help = "Set the vlan", long)]
         vlan: Option<u32>,
+
+        #[arg(help = "Whether or not the VM is an LXC", long)]
+        lxc: Option<bool>,
+    },
+
+    Import {
+        #[arg(help = "The path to the template.yaml file.")]
+        path: String,
     },
 }

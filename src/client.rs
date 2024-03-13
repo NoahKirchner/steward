@@ -126,34 +126,85 @@ impl StewardClient {
         Ok(node_map)
     }
 
+    pub async fn job_status(&self, node:String, upid:String)-> Result<bool, Box<dyn Error>> {
+        let url = format!("{}/api2/json/nodes/{node}/tasks/{upid}/status", self.url);
+        let status = self.client
+            .get(url)
+            .headers(self.headers.clone())
+            .send()
+            .await?
+            .text()
+            .await?;
+        
+        let v: Value = serde_json::from_str(status.as_str()).unwrap();
+        let raw_status: Value = serde_json::from_value(v["data"]["status"].clone())?;
+        let status = raw_status.to_string().replace('"', "");
+
+        match status.as_str() {
+            "running" => Ok(false),
+            "stopped" => Ok(true),
+            // replace later please god
+            _ => panic!()
+        }
+
+    }
+
     pub async fn clone_vm(
         &self,
+        lxc: bool,
         node: String,
         source_vmid: i32,
-        clone_args: HashMap<&str, Value>,
+        mut clone_args: HashMap<&str, Value>,
     ) -> Result<(), Box<dyn Error>> {
         // TODO Check here to see if a pool exists or if a vmid is conflicting with the destination
         // otherwise the clone will fail
         //
 
-        // REALLY BAD SOLUTION BUT we are on a time crunch my brutha
+        // REALLY BAD SOLUTION BUT we are on a time crunch my brutha (another bad solution is here
+        // now as well)
+        let mut url = String::new();
+        match lxc {
+            true => {
+                url = format!("{}/api2/json/nodes/{node}/lxc/{source_vmid}/clone", self.url);
+                if clone_args.contains_key("name") {
+                    let name = clone_args.remove("name").unwrap().to_owned();
+                    clone_args.insert("hostname", name);
+                } 
+            }
+            false => {
+                url = format!("{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone", self.url);
+            }
+        }
+        dbg!(clone_args.clone());
         let timeout = std::time::Duration::from_millis(1000);
         std::thread::sleep(timeout);
         let clone = self
             .client
-            .post(format!(
-                "{}/api2/json/nodes/{node}/qemu/{source_vmid}/clone",
-                self.url
-            ))
+            .post(url)
             .headers(self.headers.clone())
             .json(&clone_args)
             .send()
+            .await?
+            .text()
             .await?;
-        //.text()
-        //.await?;
 
-        dbg!(clone);
+        //dbg!(clone);
+        
+        // hey retard don't forget to match this instead of unwrapping @TODO
+        let v: Value = serde_json::from_str(clone.as_str()).unwrap();
+        
 
+        // please unshitfuck this
+        let raw_upid: Value = serde_json::from_value(v["data"].clone())?;
+        let upid = raw_upid.to_string().replace('"',"");
+        println!("{}", upid.clone());
+
+        while self.job_status(node.clone(), upid.clone()).await.unwrap() == false {
+            println!("Still running");
+            std::thread::sleep(std::time::Duration::from_millis(2000));
+        } 
+
+        // CLONE IS HERE AS A STUPID TEMP FIX @TODO remove please GOD 
         Ok(())
     }
 
@@ -199,6 +250,7 @@ impl StewardClient {
 
     pub async fn set_vm_net_config(
         &self,
+        lxc: bool,
         node: String,
         vmid: u32,
         net_device: &str,
@@ -212,7 +264,12 @@ impl StewardClient {
 
         //TODO unshitfuck pl0x
         // PS the reason to do this is because the proxmox API basically demands autism
-        net_config_values.push_str("model=virtio,");
+        
+        if lxc == false {
+            net_config_values.push_str("model=e1000,");
+        } else {
+            net_config_values.push_str("name=eth0,");
+        }
         for (key, value) in net_config_args {
             net_config_values.push_str(key.to_string().as_str());
             net_config_values.push_str("=");
@@ -225,13 +282,21 @@ impl StewardClient {
         // TODO unshitfuck this please
         net_config.insert(net_device, net_config_values);
 
+        let mut url = String::new();
+
+        match lxc {
+            true => {
+                url = format!("{}/api2/json/nodes/{node}/lxc/{vmid}/config", self.url);
+            }
+            false => {
+                url = format!("{}/api2/json/nodes/{node}/qemu/{vmid}/config", self.url);
+            }
+        }
+
         dbg!(&net_config);
         let config = self
             .client
-            .post(format!(
-                "{}/api2/json/nodes/{node}/qemu/{vmid}/config",
-                self.url
-            ))
+            .put(url)
             .headers(self.headers.clone())
             .json(&net_config)
             .send()
